@@ -36,6 +36,17 @@ const newRecordFlag = document.getElementById('new-record-flag');
 const btnRestartGameover = document.getElementById('btn-restart-gameover');
 const btnQuitGameover = document.getElementById('btn-quit-gameover');
 
+// Office HUD elements
+const officeHud = document.getElementById('office-hud');
+const officeClock = document.getElementById('office-clock');
+const officeCash = document.getElementById('office-cash');
+const coffeeCount = document.getElementById('coffee-count');
+const dispatchCount = document.getElementById('dispatch-count');
+const projectsTray = document.getElementById('projects-tray');
+const officeCoffeeBtn = document.getElementById('office-coffee-btn');
+const officeDispatchBtn = document.getElementById('office-dispatch-btn');
+const floatingNotification = document.getElementById('floating-notification');
+
 // Mobile controls
 const mobileControls = document.getElementById('mobile-controls');
 const mBtnLeft = document.getElementById('m-btn-left');
@@ -156,9 +167,39 @@ function launchGame(gameId) {
 
   // Instantiate Game
   const GameClass = gameMeta.GameClass;
+
+  if (gameId === 'miss-management') {
+    officeHud.style.display = 'flex';
+  } else {
+    officeHud.style.display = 'none';
+  }
+
   currentGameInstance = new GameClass({
     onScoreUpdate: (score) => {
       hudScoreText.textContent = score.toLocaleString();
+    },
+    onStatsUpdate: (stats) => {
+      if (gameId === 'miss-management' && stats) {
+        if (stats.timeFormatted) officeClock.textContent = stats.timeFormatted;
+        if (stats.cash !== undefined) officeCash.textContent = `$${stats.cash.toLocaleString()}`;
+        if (stats.coffeeCupsReady !== undefined) coffeeCount.textContent = stats.coffeeCupsReady;
+        if (stats.completedBatchesCount !== undefined) dispatchCount.textContent = stats.completedBatchesCount;
+
+        // Render projects tray
+        if (stats.queue) {
+          renderProjectsTray(stats.queue);
+        }
+      }
+    },
+    onFloatingMessage: (msg) => {
+      if (floatingNotification) {
+        floatingNotification.textContent = msg.text;
+        floatingNotification.style.borderColor = msg.color || 'var(--accent-cyan)';
+        floatingNotification.style.display = 'block';
+        setTimeout(() => {
+          if (floatingNotification) floatingNotification.style.display = 'none';
+        }, 2200);
+      }
     },
     onGameOver: (score, isNewHighScore) => {
       gameoverScore.textContent = score.toLocaleString();
@@ -177,12 +218,87 @@ function launchGame(gameId) {
   setupMobileControls(gameId);
 }
 
+function renderProjectsTray(queue) {
+  if (!projectsTray) return;
+  projectsTray.innerHTML = '';
+
+  queue.forEach((proj) => {
+    const card = document.createElement('div');
+    card.className = 'project-card-mini';
+
+    const progressPct = Math.round(proj.progress);
+    const deadlinePct = Math.max(0, Math.round((proj.remainingTime / proj.totalTime) * 100));
+    const isAssigned = !!proj.assignedTo;
+
+    card.innerHTML = `
+      <div class="proj-title" title="${proj.title}">${proj.title}</div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="proj-skill" style="color:var(--accent-cyan);">${proj.skill}</span>
+        <span style="font-size:0.7rem; color:#10b981; font-weight:700;">+$${proj.reward}</span>
+      </div>
+      <div class="proj-bar-bg" title="Work Progress">
+        <div class="proj-bar-fill" style="width: ${progressPct}%; background: ${isAssigned ? '#10b981' : '#f59e0b'};"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+        <span style="font-size:0.65rem; color:#94a3b8;">${isAssigned ? 'Working...' : `⏳ ${Math.ceil(proj.remainingTime)}s`}</span>
+        ${!isAssigned ? `<button class="proj-assign-btn" data-proj-id="${proj.id}">Assign</button>` : ''}
+      </div>
+    `;
+
+    const assignBtn = card.querySelector('.proj-assign-btn');
+    if (assignBtn) {
+      assignBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentGameInstance && currentGameInstance.employees) {
+          const matchingEmp = currentGameInstance.employees.find((emp) => emp.skill === proj.skill && emp.state === 'idle');
+          if (matchingEmp) {
+            currentGameInstance.assignProject(proj, matchingEmp);
+          } else {
+            // Find any idle employee or show notification
+            const anyIdle = currentGameInstance.employees.find((emp) => emp.state === 'idle');
+            if (anyIdle) {
+              currentGameInstance.assignProject(proj, anyIdle);
+            } else {
+              sounds.playHit();
+              if (floatingNotification) {
+                floatingNotification.textContent = 'All staff busy! Cheer them up or serve coffee!';
+                floatingNotification.style.borderColor = '#ef4444';
+                floatingNotification.style.display = 'block';
+                setTimeout(() => { if (floatingNotification) floatingNotification.style.display = 'none'; }, 2000);
+              }
+            }
+          }
+        }
+      });
+    }
+
+    projectsTray.appendChild(card);
+  });
+}
+
+if (officeCoffeeBtn) {
+  officeCoffeeBtn.addEventListener('click', () => {
+    if (currentGameInstance && currentGameInstance.interactCoffeeStation) {
+      currentGameInstance.interactCoffeeStation();
+    }
+  });
+}
+
+if (officeDispatchBtn) {
+  officeDispatchBtn.addEventListener('click', () => {
+    if (currentGameInstance && currentGameInstance.interactDispatchStation) {
+      currentGameInstance.interactDispatchStation();
+    }
+  });
+}
+
 function exitToHub() {
   if (currentGameInstance) {
     currentGameInstance.destroy();
     currentGameInstance = null;
   }
   activeGameMeta = null;
+  if (officeHud) officeHud.style.display = 'none';
   pauseModal.style.display = 'none';
   gameoverModal.style.display = 'none';
   gameView.style.display = 'none';

@@ -1,3 +1,4 @@
+import { MissManagementGame } from '../games/miss-management/MissManagementGame.js';
 import { CyberRunnerGame } from '../games/cyber-runner/CyberRunnerGame.js';
 import { TowerStackerGame } from '../games/tower-stacker/TowerStackerGame.js';
 import { CosmicMarbleGame } from '../games/cosmic-marble/CosmicMarbleGame.js';
@@ -5,11 +6,26 @@ import { CyberPongGame } from '../games/neon-pong/CyberPongGame.js';
 
 export const gamesRegistry = [
   {
+    id: 'miss-management',
+    title: 'Miss Management 3D',
+    subtitle: 'Office Chaos & Employee Time Sim',
+    category: 'Time Management / Simulation',
+    badge: 'GameHouse Classic Remake',
+    color: '#ff007f',
+    gradient: 'from-pink-500/20 to-purple-600/20',
+    description: 'Inspired by GameHouse classic "Miss Management". Take command as Denise Spencer! Manage quirky employees (Tim, Tara, Winston, Luke), brew artisan espresso, assign deadline projects, and keep office stress under control before 5:00 PM!',
+    controls: {
+      desktop: ['Click Desks to assign projects or give pep talks', 'Click Coffee Bar to brew/serve espresso', 'Click Dispatch Printer to deliver completed projects & collect cash'],
+      mobile: ['Tap Desks, Coffee Machine, or Dispatch Table to interact']
+    },
+    GameClass: MissManagementGame
+  },
+  {
     id: 'cyber-runner',
     title: 'Cyber Runner 3D',
     subtitle: 'Endless Hyperspace Speedway',
     category: 'Endless Runner',
-    badge: 'Popular',
+    badge: 'Action',
     color: '#00f0ff',
     gradient: 'from-cyan-500/20 to-blue-600/20',
     description: 'Pilot your high-speed neon speeder through an infinite hyperspace tunnel. Dodge laser barriers and spikes while collecting glowing power crystals.',

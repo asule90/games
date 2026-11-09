@@ -98,6 +98,30 @@
         </div>
       </div>
 
+      <!-- Office Management HUD (Specialized for Miss Management) -->
+      <div id="office-hud" class="office-dashboard" style="display:none;">
+        <div class="office-top-metrics">
+          <div class="metric-badge">
+            <span class="metric-icon">⏰</span>
+            <span id="office-clock">09:00 AM</span>
+          </div>
+          <div class="metric-badge" style="border-color:rgba(16,185,129,0.4);">
+            <span class="metric-icon">💵</span>
+            <span id="office-cash" style="color:#10b981; font-weight:800;">$600</span>
+          </div>
+          <button id="office-coffee-btn" class="office-action-btn" title="Brew/Serve Coffee">
+            <span>☕</span> Espresso (<span id="coffee-count">2</span>)
+          </button>
+          <button id="office-dispatch-btn" class="office-action-btn" style="border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.2);" title="Dispatch Finished Files">
+            <span>📤</span> Deliver (<span id="dispatch-count">0</span>)
+          </button>
+        </div>
+
+        <!-- Project Tasks Tray -->
+        <div class="projects-tray" id="projects-tray"></div>
+        <div id="floating-notification" class="floating-banner" style="display:none;"></div>
+      </div>
+
       <!-- 3D Canvas Mount Point -->
       <div id="game-canvas-container"></div>
 
