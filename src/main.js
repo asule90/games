@@ -80,6 +80,8 @@ let isSheetOpen = false;
 const mobileControls = document.getElementById('mobile-controls');
 const mBtnLeft = document.getElementById('m-btn-left');
 const mBtnRight = document.getElementById('m-btn-right');
+const mBtnDown = document.getElementById('m-btn-down');
+const mBtnDrop = document.getElementById('m-btn-drop');
 const mBtnAction = document.getElementById('m-btn-action');
 
 // Safe Background 2D Canvas Initialization
@@ -137,6 +139,8 @@ function renderGameGrid() {
     let iconSvg = '';
     if (game.id === 'miss-management') {
       iconSvg = `<span style="font-size: 2.2rem;">💼</span>`;
+    } else if (game.id === 'tetris-3d') {
+      iconSvg = `<span style="font-size: 2.2rem;">🧩</span>`;
     } else if (game.id === 'cyber-runner') {
       iconSvg = `<span style="font-size: 2.2rem;">🚀</span>`;
     } else if (game.id === 'tower-stacker') {
@@ -550,17 +554,29 @@ function exitToHub() {
 
 // Mobile buttons wiring
 function setupMobileControls(gameId) {
-  if (gameId === 'tower-stacker') {
+  if (gameId === 'tetris-3d') {
+    mBtnLeft.style.display = 'flex';
+    mBtnRight.style.display = 'flex';
+    if (mBtnDown) mBtnDown.style.display = 'flex';
+    if (mBtnDrop) mBtnDrop.style.display = 'flex';
+    mBtnAction.textContent = '🔄';
+  } else if (gameId === 'tower-stacker') {
     mBtnLeft.style.display = 'none';
     mBtnRight.style.display = 'none';
+    if (mBtnDown) mBtnDown.style.display = 'none';
+    if (mBtnDrop) mBtnDrop.style.display = 'none';
     mBtnAction.textContent = 'TAP';
   } else if (gameId === 'cyber-runner') {
     mBtnLeft.style.display = 'flex';
     mBtnRight.style.display = 'flex';
+    if (mBtnDown) mBtnDown.style.display = 'none';
+    if (mBtnDrop) mBtnDrop.style.display = 'none';
     mBtnAction.textContent = '▲';
   } else {
     mBtnLeft.style.display = 'flex';
     mBtnRight.style.display = 'flex';
+    if (mBtnDown) mBtnDown.style.display = 'none';
+    if (mBtnDrop) mBtnDrop.style.display = 'none';
     mBtnAction.textContent = '●';
   }
 }
@@ -583,13 +599,39 @@ mBtnRight.addEventListener('pointerup', (e) => {
   window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowRight' }));
 });
 
+if (mBtnDown) {
+  mBtnDown.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ArrowDown' }));
+  });
+  mBtnDown.addEventListener('pointerup', (e) => {
+    e.preventDefault();
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowDown' }));
+  });
+}
+
+if (mBtnDrop) {
+  mBtnDrop.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+  });
+}
+
 mBtnAction.addEventListener('pointerdown', (e) => {
   e.preventDefault();
-  window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+  if (activeGameMeta && activeGameMeta.id === 'tetris-3d') {
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ArrowUp' }));
+  } else {
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+  }
 });
 mBtnAction.addEventListener('pointerup', (e) => {
   e.preventDefault();
-  window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }));
+  if (activeGameMeta && activeGameMeta.id === 'tetris-3d') {
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowUp' }));
+  } else {
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }));
+  }
 });
 
 // UI Event Listeners

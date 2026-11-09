@@ -1,4 +1,5 @@
 import { MissManagementGame } from '../games/miss-management/MissManagementGame.js';
+import { TetrisGame } from '../games/tetris/TetrisGame.js';
 import { CyberRunnerGame } from '../games/cyber-runner/CyberRunnerGame.js';
 import { TowerStackerGame } from '../games/tower-stacker/TowerStackerGame.js';
 import { CosmicMarbleGame } from '../games/cosmic-marble/CosmicMarbleGame.js';
@@ -19,6 +20,21 @@ export const gamesRegistry = [
       mobile: ['Tap Desks, Coffee Machine, or Dispatch Table to interact']
     },
     GameClass: MissManagementGame
+  },
+  {
+    id: 'tetris-3d',
+    title: 'Tetris 3D Classic',
+    subtitle: 'Neon Pastel Block Rush',
+    category: 'Puzzle / Arcade',
+    badge: '🕹️ Classic Retro',
+    color: '#00f0ff',
+    gradient: 'from-cyan-400/20 to-blue-500/20',
+    description: 'The world-famous block puzzle in gorgeous 3D! Rotate and drop neon pastel tetrominoes, clear lines for satisfying point bonuses, use Hold (C) and Ghost Piece to set high scores!',
+    controls: {
+      desktop: ['← / → or A / D to Move', '↑ or W to Rotate', '↓ or S to Soft Drop', 'Space to Hard Drop', 'C or Shift to Hold Piece'],
+      mobile: ['D-pad Left / Right to Move', 'Tap Rotate to Spin', 'Tap Drop to Hard Drop']
+    },
+    GameClass: TetrisGame
   },
   {
     id: 'cyber-runner',
