@@ -30,15 +30,36 @@ export class BaseGame {
     const width = this.container.clientWidth || window.innerWidth;
     const height = this.container.clientHeight || window.innerHeight;
 
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: 'high-performance'
-    });
+    try {
+      // First attempt: High quality
+      this.renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        powerPreference: 'default'
+      });
+    } catch (err1) {
+      console.warn('Initial WebGL init failed, attempting safe fallback without antialias...', err1);
+      try {
+        // Second attempt: Safe basic fallback
+        this.renderer = new THREE.WebGLRenderer({
+          antialias: false,
+          alpha: true,
+          powerPreference: 'default',
+          precision: 'mediump'
+        });
+      } catch (err2) {
+        console.error('WebGL is not available in browser:', err2);
+        this.showWebGLErrorNotice(container);
+        return;
+      }
+    }
+
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    try {
+      this.renderer.shadowMap.enabled = true;
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    } catch (e) {}
 
     this.container.appendChild(this.renderer.domElement);
     window.addEventListener('resize', this.handleResize);
@@ -46,6 +67,42 @@ export class BaseGame {
     this.setupCamera(width, height);
     this.setupScene();
     this.setupControls();
+  }
+
+  showWebGLErrorNotice(container) {
+    const notice = document.createElement('div');
+    notice.style.cssText = `
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #181534;
+      color: #fff;
+      padding: 2rem;
+      text-align: center;
+      font-family: sans-serif;
+      z-index: 200;
+    `;
+    notice.innerHTML = `
+      <div style="font-size: 3.5rem; margin-bottom: 1rem;">🎮</div>
+      <h2 style="font-size: 1.8rem; margin-bottom: 1rem; color: #ff6b8b;">WebGL Belum Aktif di Browser</h2>
+      <p style="max-width: 520px; line-height: 1.6; color: #cbd5e1; margin-bottom: 1.5rem;">
+        Peramban Anda saat ini memblokir WebGL (Software Mesa Renderer). Silakan aktifkan opsi 
+        <strong>"Use graphics acceleration when available"</strong> di pengaturan browser Anda (<code>chrome://settings/system</code> atau <code>brave://settings/system</code>), lalu restart browser.
+      </p>
+      <button onclick="window.location.hash='#/'" style="
+        background: linear-gradient(135deg, #ff6b8b, #ff9f43);
+        border: none;
+        color: #fff;
+        font-weight: bold;
+        padding: 0.8rem 1.6rem;
+        border-radius: 9999px;
+        cursor: pointer;
+      ">Kembali ke Beranda</button>
+    `;
+    container.appendChild(notice);
   }
 
   setupCamera(width, height) {

@@ -53,9 +53,13 @@ const mBtnLeft = document.getElementById('m-btn-left');
 const mBtnRight = document.getElementById('m-btn-right');
 const mBtnAction = document.getElementById('m-btn-action');
 
-// 1. Initialize Background 3D Effect
-if (bgCanvas) {
-  new BackgroundEffect(bgCanvas);
+// Safe Background 2D Canvas Initialization
+try {
+  if (bgCanvas) {
+    new BackgroundEffect(bgCanvas);
+  }
+} catch (err) {
+  console.warn('Background effect initialization skipped:', err);
 }
 
 // 2. Audio button update
