@@ -45,7 +45,36 @@ const dispatchCount = document.getElementById('dispatch-count');
 const projectsTray = document.getElementById('projects-tray');
 const officeCoffeeBtn = document.getElementById('office-coffee-btn');
 const officeDispatchBtn = document.getElementById('office-dispatch-btn');
+const officeShopBtn = document.getElementById('office-shop-btn');
+const officeHelpBtn = document.getElementById('office-help-btn');
 const floatingNotification = document.getElementById('floating-notification');
+
+// Employee Inspector Sheet elements
+const employeeSheet = document.getElementById('employee-sheet');
+const sheetAvatar = document.getElementById('sheet-avatar');
+const sheetName = document.getElementById('sheet-name');
+const sheetRole = document.getElementById('sheet-role');
+const sheetStressVal = document.getElementById('sheet-stress-val');
+const sheetStressBar = document.getElementById('sheet-stress-bar');
+const sheetStatusVal = document.getElementById('sheet-status-val');
+const btnCloseSheet = document.getElementById('btn-close-sheet');
+const sheetBtnCoffee = document.getElementById('sheet-btn-coffee');
+const sheetBtnPeptalk = document.getElementById('sheet-btn-peptalk');
+const sheetBtnBreak = document.getElementById('sheet-btn-break');
+
+// Office Shop Modal elements
+const shopModal = document.getElementById('shop-modal');
+const shopModalCash = document.getElementById('shop-modal-cash');
+const btnCloseShop = document.getElementById('btn-close-shop');
+
+// Tutorial Modal elements
+const tutorialModal = document.getElementById('tutorial-modal');
+const btnCloseTutorial = document.getElementById('btn-close-tutorial');
+const btnStartWorking = document.getElementById('btn-start-working');
+
+let latestOfficeStats = null;
+let sheetActiveEmployeeId = 'tim';
+let isSheetOpen = false;
 
 // Mobile controls
 const mobileControls = document.getElementById('mobile-controls');
@@ -197,10 +226,19 @@ function launchGame(gameId) {
     },
     onStatsUpdate: (stats) => {
       if (gameId === 'miss-management' && stats) {
+        latestOfficeStats = stats;
         if (stats.timeFormatted) officeClock.textContent = stats.timeFormatted;
         if (stats.cash !== undefined) officeCash.textContent = `$${stats.cash.toLocaleString()}`;
         if (stats.coffeeCupsReady !== undefined) coffeeCount.textContent = stats.coffeeCupsReady;
         if (stats.completedBatchesCount !== undefined) dispatchCount.textContent = stats.completedBatchesCount;
+
+        if (stats.selectedEmployeeId) {
+          sheetActiveEmployeeId = stats.selectedEmployeeId;
+          isSheetOpen = true;
+        }
+
+        updateEmployeeSheetUI();
+        updateShopModalUI();
 
         // Render projects tray
         if (stats.queue) {
@@ -239,6 +277,87 @@ function launchGame(gameId) {
   setupMobileControls(gameId);
 }
 
+function updateEmployeeSheetUI() {
+  if (!employeeSheet) return;
+  if (!isSheetOpen || !latestOfficeStats || !latestOfficeStats.employees) {
+    employeeSheet.style.display = 'none';
+    return;
+  }
+
+  const emp = latestOfficeStats.employees.find((e) => e.id === sheetActiveEmployeeId);
+  if (!emp) {
+    employeeSheet.style.display = 'none';
+    return;
+  }
+
+  employeeSheet.style.display = 'block';
+  sheetAvatar.textContent = emp.icon || '💼';
+  sheetAvatar.style.borderColor = emp.colorHex || 'var(--accent-cyan)';
+  sheetName.textContent = emp.name;
+  sheetRole.textContent = `${emp.role} (${emp.specialty})`;
+
+  // Stress bar & text
+  const stress = emp.stress;
+  let stressColor = '#10b981';
+  let stressMood = 'Tenang 😊';
+  if (stress >= 80) {
+    stressColor = '#ef4444';
+    stressMood = 'Hampir Burnout! 😰';
+  } else if (stress >= 40) {
+    stressColor = '#f59e0b';
+    stressMood = 'Mulai Lelah 😐';
+  }
+
+  sheetStressVal.textContent = `${stress}% (${stressMood})`;
+  sheetStressVal.style.color = stressColor;
+  sheetStressBar.style.width = `${Math.min(100, stress)}%`;
+  sheetStressBar.style.background = stressColor;
+
+  // Status text
+  let statusDesc = 'Santai / Menunggu Tugas';
+  if (emp.state === 'panic') {
+    statusDesc = '💥 BURNOUT! Butuh Istirahat Sofa / Donat!';
+  } else if (emp.state === 'break') {
+    statusDesc = `🛋️ Istirahat di Sofa (${emp.breakRemaining}s)`;
+  } else if (emp.state === 'working') {
+    statusDesc = emp.activeProject ? `💻 Mengerjakan "${emp.activeProject.title}"` : '💻 Bekerja';
+  }
+  if (emp.isCaffeinated) {
+    statusDesc += ` • ⚡ Caffeine Rush (${emp.caffeineRemaining}s)`;
+  }
+  sheetStatusVal.textContent = statusDesc;
+}
+
+function updateShopModalUI() {
+  if (!shopModal || !latestOfficeStats) return;
+  if (shopModalCash) {
+    shopModalCash.textContent = `$${latestOfficeStats.cash.toLocaleString()}`;
+  }
+
+  const upgrades = latestOfficeStats.upgrades || {};
+  const currentCash = latestOfficeStats.cash || 0;
+
+  const buyButtons = shopModal.querySelectorAll('.shop-buy-btn');
+  buyButtons.forEach((btn) => {
+    const key = btn.dataset.key;
+    if (key === 'donutParty') {
+      btn.disabled = currentCash < 250;
+      btn.textContent = currentCash >= 250 ? 'Beli $250 🍩' : 'Butuh $250';
+    } else {
+      if (upgrades[key]) {
+        btn.disabled = true;
+        btn.textContent = 'TERPASANG ✅';
+        btn.style.background = '#475569';
+      } else {
+        const cost = key === 'turboEspresso' ? 400 : (key === 'ergonomicChairs' ? 500 : (key === 'dualMonitors' ? 600 : 350));
+        btn.disabled = currentCash < cost;
+        btn.textContent = currentCash >= cost ? `Beli $${cost}` : `Butuh $${cost}`;
+        btn.style.background = currentCash >= cost ? 'linear-gradient(135deg, #10b981, #059669)' : '#475569';
+      }
+    }
+  });
+}
+
 function renderProjectsTray(queue) {
   if (!projectsTray) return;
   projectsTray.innerHTML = '';
@@ -248,21 +367,31 @@ function renderProjectsTray(queue) {
     card.className = 'project-card-mini';
 
     const progressPct = Math.round(proj.progress);
-    const deadlinePct = Math.max(0, Math.round((proj.remainingTime / proj.totalTime) * 100));
     const isAssigned = !!proj.assignedTo;
+
+    // Find suggested specialist
+    let targetName = 'Staff';
+    let targetIcon = '💼';
+    if (currentGameInstance && currentGameInstance.employees) {
+      const spec = currentGameInstance.employees.find((e) => e.skill === proj.skill);
+      if (spec) {
+        targetName = spec.name;
+        targetIcon = spec.icon;
+      }
+    }
 
     card.innerHTML = `
       <div class="proj-title" title="${proj.title}">${proj.title}</div>
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span class="proj-skill" style="color:var(--accent-cyan);">${proj.skill}</span>
-        <span style="font-size:0.7rem; color:#10b981; font-weight:700;">+$${proj.reward}</span>
+        <span class="proj-skill" style="color:var(--accent-cyan);">${proj.skill.toUpperCase()}</span>
+        <span style="font-size:0.75rem; color:#10b981; font-weight:800;">+$${proj.reward}</span>
       </div>
       <div class="proj-bar-bg" title="Work Progress">
         <div class="proj-bar-fill" style="width: ${progressPct}%; background: ${isAssigned ? '#10b981' : '#f59e0b'};"></div>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
-        <span style="font-size:0.65rem; color:#94a3b8;">${isAssigned ? 'Working...' : `⏳ ${Math.ceil(proj.remainingTime)}s`}</span>
-        ${!isAssigned ? `<button class="proj-assign-btn" data-proj-id="${proj.id}">Assign</button>` : ''}
+        <span style="font-size:0.68rem; color:#94a3b8;">${isAssigned ? 'Sedang Dikerjakan...' : `⏳ ${Math.ceil(proj.remainingTime)}s`}</span>
+        ${!isAssigned ? `<button class="proj-assign-btn" data-proj-id="${proj.id}">👉 ${targetName} ${targetIcon}</button>` : ''}
       </div>
     `;
 
@@ -271,21 +400,22 @@ function renderProjectsTray(queue) {
       assignBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (currentGameInstance && currentGameInstance.employees) {
-          const matchingEmp = currentGameInstance.employees.find((emp) => emp.skill === proj.skill && emp.state === 'idle');
-          if (matchingEmp) {
-            currentGameInstance.assignProject(proj, matchingEmp);
+          // Try to assign to the specialist first
+          const spec = currentGameInstance.employees.find((emp) => emp.skill === proj.skill && emp.state === 'idle');
+          if (spec) {
+            currentGameInstance.assignProject(proj, spec);
           } else {
-            // Find any idle employee or show notification
+            // Find any idle staff member
             const anyIdle = currentGameInstance.employees.find((emp) => emp.state === 'idle');
             if (anyIdle) {
               currentGameInstance.assignProject(proj, anyIdle);
             } else {
               sounds.playHit();
               if (floatingNotification) {
-                floatingNotification.textContent = 'All staff busy! Cheer them up or serve coffee!';
+                floatingNotification.textContent = `Semua staf sibuk! Berikan kopi ☕ atau pep talk 💖!`;
                 floatingNotification.style.borderColor = '#ef4444';
                 floatingNotification.style.display = 'block';
-                setTimeout(() => { if (floatingNotification) floatingNotification.style.display = 'none'; }, 2000);
+                setTimeout(() => { if (floatingNotification) floatingNotification.style.display = 'none'; }, 2200);
               }
             }
           }
@@ -297,6 +427,7 @@ function renderProjectsTray(queue) {
   });
 }
 
+// Wire Up Office HUD & Sheet Buttons
 if (officeCoffeeBtn) {
   officeCoffeeBtn.addEventListener('click', () => {
     if (currentGameInstance && currentGameInstance.interactCoffeeStation) {
@@ -313,13 +444,101 @@ if (officeDispatchBtn) {
   });
 }
 
+if (officeShopBtn) {
+  officeShopBtn.addEventListener('click', () => {
+    sounds.playClick();
+    updateShopModalUI();
+    if (shopModal) shopModal.style.display = 'flex';
+  });
+}
+
+if (officeHelpBtn) {
+  officeHelpBtn.addEventListener('click', () => {
+    sounds.playClick();
+    if (tutorialModal) tutorialModal.style.display = 'flex';
+  });
+}
+
+if (btnCloseShop) {
+  btnCloseShop.addEventListener('click', () => {
+    sounds.playClick();
+    if (shopModal) shopModal.style.display = 'none';
+  });
+}
+
+if (btnCloseTutorial) {
+  btnCloseTutorial.addEventListener('click', () => {
+    sounds.playClick();
+    if (tutorialModal) tutorialModal.style.display = 'none';
+  });
+}
+
+if (btnStartWorking) {
+  btnStartWorking.addEventListener('click', () => {
+    sounds.playClick();
+    if (tutorialModal) tutorialModal.style.display = 'none';
+  });
+}
+
+if (btnCloseSheet) {
+  btnCloseSheet.addEventListener('click', () => {
+    sounds.playClick();
+    isSheetOpen = false;
+    if (employeeSheet) employeeSheet.style.display = 'none';
+  });
+}
+
+if (sheetBtnCoffee) {
+  sheetBtnCoffee.addEventListener('click', () => {
+    if (currentGameInstance && currentGameInstance.giveCoffee) {
+      currentGameInstance.giveCoffee(sheetActiveEmployeeId);
+    }
+  });
+}
+
+if (sheetBtnPeptalk) {
+  sheetBtnPeptalk.addEventListener('click', () => {
+    if (currentGameInstance && currentGameInstance.givePepTalk) {
+      currentGameInstance.givePepTalk(sheetActiveEmployeeId);
+    }
+  });
+}
+
+if (sheetBtnBreak) {
+  sheetBtnBreak.addEventListener('click', () => {
+    if (currentGameInstance && currentGameInstance.sendToBreak) {
+      currentGameInstance.sendToBreak(sheetActiveEmployeeId);
+    }
+  });
+}
+
+// Shop item buy triggers
+if (shopModal) {
+  const shopBuyButtons = shopModal.querySelectorAll('.shop-buy-btn');
+  shopBuyButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.key;
+      if (currentGameInstance && currentGameInstance.buyUpgrade) {
+        const success = currentGameInstance.buyUpgrade(key);
+        if (success) {
+          updateShopModalUI();
+        }
+      }
+    });
+  });
+}
+
 function exitToHub() {
   if (currentGameInstance) {
     currentGameInstance.destroy();
     currentGameInstance = null;
   }
   activeGameMeta = null;
+  isSheetOpen = false;
   if (officeHud) officeHud.style.display = 'none';
+  if (employeeSheet) employeeSheet.style.display = 'none';
+  if (shopModal) shopModal.style.display = 'none';
+  if (tutorialModal) tutorialModal.style.display = 'none';
   pauseModal.style.display = 'none';
   gameoverModal.style.display = 'none';
   gameView.style.display = 'none';

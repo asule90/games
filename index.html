@@ -114,11 +114,179 @@
           <button id="office-dispatch-btn" class="office-action-btn" style="border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.2);" title="Dispatch Finished Files">
             <span>📤</span> Deliver (<span id="dispatch-count">0</span>)
           </button>
+          <button id="office-shop-btn" class="office-action-btn" style="border-color:rgba(236,72,153,0.5); background:rgba(236,72,153,0.2);" title="Beli Upgrade Kantor">
+            <span>🛒</span> Upgrade Toko
+          </button>
+          <button id="office-help-btn" class="office-action-btn" style="border-color:rgba(56,189,248,0.5); background:rgba(56,189,248,0.2);" title="Cara Bermain">
+            <span>❓</span> Panduan Main
+          </button>
         </div>
 
         <!-- Project Tasks Tray -->
         <div class="projects-tray" id="projects-tray"></div>
         <div id="floating-notification" class="floating-banner" style="display:none;"></div>
+
+        <!-- Employee Inspector Sheet (Interactive detail card) -->
+        <div id="employee-sheet" class="employee-sheet-card" style="display:none;">
+          <div class="sheet-header">
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <div id="sheet-avatar" class="sheet-avatar-circle">💻</div>
+              <div>
+                <div id="sheet-name" class="sheet-emp-name">Tim</div>
+                <div id="sheet-role" class="sheet-emp-role">Lead Developer</div>
+              </div>
+            </div>
+            <button id="btn-close-sheet" class="sheet-close-btn">&times;</button>
+          </div>
+
+          <div class="sheet-body">
+            <div class="sheet-metric-row">
+              <span class="sheet-label">Tingkat Stres:</span>
+              <span id="sheet-stress-val" class="sheet-val" style="color:#10b981;">15% (Tenang 😊)</span>
+            </div>
+            <div class="sheet-bar-bg">
+              <div id="sheet-stress-bar" class="sheet-bar-fill" style="width:15%; background:#10b981;"></div>
+            </div>
+
+            <div class="sheet-metric-row" style="margin-top:0.4rem;">
+              <span class="sheet-label">Status Kerja:</span>
+              <span id="sheet-status-val" class="sheet-val">Santai / Idle</span>
+            </div>
+
+            <div class="sheet-actions">
+              <button id="sheet-btn-coffee" class="sheet-act-btn" title="Beri Kopi (-40% Stres + Kecepatan 1.6x)">
+                <span>☕</span> Beri Espresso
+              </button>
+              <button id="sheet-btn-peptalk" class="sheet-act-btn" title="Pep Talk (-25% Stres)">
+                <span>💖</span> Pep Talk
+              </button>
+              <button id="sheet-btn-break" class="sheet-act-btn" style="border-color:rgba(139,92,246,0.6);" title="Kirim ke Sofa Lounge (Reset Stres 0%)">
+                <span>🛋️</span> Istirahat Sofa
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Office Shop Modal -->
+      <div class="modal-overlay" id="shop-modal">
+        <div class="modal-content shop-modal-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h2 class="modal-title" style="margin-bottom:0; font-size:1.4rem;">🛒 TOKO UPGRADE KANTOR</h2>
+            <button id="btn-close-shop" class="sheet-close-btn">&times;</button>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:1.25rem;">
+            <span style="color:var(--text-secondary); font-weight:700;">Saldo Kantor:</span>
+            <span id="shop-modal-cash" style="color:#10b981; font-weight:900; font-size:1.3rem;">$600</span>
+          </div>
+
+          <div class="shop-grid">
+            <div class="shop-item-card" id="shop-item-turbo">
+              <div class="shop-item-icon">⚡☕</div>
+              <div class="shop-item-info">
+                <div class="shop-item-title">Turbo Espresso Machine</div>
+                <div class="shop-item-desc">Seduh kopi kilat dalam 2.5 detik (dari 5s) & kapasitas 4 cangkir.</div>
+              </div>
+              <button class="shop-buy-btn" data-key="turboEspresso">$400</button>
+            </div>
+
+            <div class="shop-item-card" id="shop-item-chairs">
+              <div class="shop-item-icon">🪑</div>
+              <div class="shop-item-info">
+                <div class="shop-item-title">Kursi Ergonomis Premium</div>
+                <div class="shop-item-desc">Karyawan duduk lebih nyaman, penumpukan stres berkurang 40%!</div>
+              </div>
+              <button class="shop-buy-btn" data-key="ergonomicChairs">$500</button>
+            </div>
+
+            <div class="shop-item-card" id="shop-item-monitors">
+              <div class="shop-item-icon">🖥️</div>
+              <div class="shop-item-info">
+                <div class="shop-item-title">Dual 4K Displays</div>
+                <div class="shop-item-desc">Pasang layar kedua di setiap meja, kecepatan kerja tim +35%!</div>
+              </div>
+              <button class="shop-buy-btn" data-key="dualMonitors">$600</button>
+            </div>
+
+            <div class="shop-item-card" id="shop-item-plants">
+              <div class="shop-item-icon">🌿</div>
+              <div class="shop-item-info">
+                <div class="shop-item-title">Zen Office Monstera</div>
+                <div class="shop-item-desc">Aura tanaman penyejuk kantor, menurunkan stres tim secara pasif.</div>
+              </div>
+              <button class="shop-buy-btn" data-key="zenPlants">$350</button>
+            </div>
+
+            <div class="shop-item-card" id="shop-item-donuts">
+              <div class="shop-item-icon">🍩</div>
+              <div class="shop-item-info">
+                <div class="shop-item-title">Pesta Donat Segar Kantor</div>
+                <div class="shop-item-desc">Traktir satu kantor! Mengurangi stres seluruh karyawan langsung 0%!</div>
+              </div>
+              <button class="shop-buy-btn" data-key="donutParty">$250</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tutorial / How to Play Modal -->
+      <div class="modal-overlay" id="tutorial-modal">
+        <div class="modal-content tutorial-modal-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h2 class="modal-title" style="margin-bottom:0; font-size:1.35rem;">📖 PANDUAN: MISS MANAGEMENT 3D</h2>
+            <button id="btn-close-tutorial" class="sheet-close-btn">&times;</button>
+          </div>
+          <p style="color:var(--text-secondary); font-size:0.95rem; margin-bottom:1.2rem;">
+            Selamat datang, Manajer Denise! Misi Anda adalah mengelola studio kreatif, menyelesaikan proyek tepat waktu, dan menjaga kebahagiaan staf kantor!
+          </p>
+
+          <div class="tutorial-steps">
+            <div class="tutorial-step-row">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <strong>Tugaskan Proyek ke Ahlinya 📋</strong>
+                <p>Klien mengirim pekerjaan di tray kiri. Cocokkan keahlian karyawan:</p>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.3rem; font-size:0.8rem;">
+                  <span style="background:#3b82f633; color:#60a5fa; padding:2px 8px; border-radius:6px; font-weight:700;">Tim (Code 💻)</span>
+                  <span style="background:#ec489933; color:#f472b6; padding:2px 8px; border-radius:6px; font-weight:700;">Tara (Design 🎨)</span>
+                  <span style="background:#10b98133; color:#34d399; padding:2px 8px; border-radius:6px; font-weight:700;">Winston (Audit 📊)</span>
+                  <span style="background:#f59e0b33; color:#fbbf24; padding:2px 8px; border-radius:6px; font-weight:700;">Luke (Copy 📝)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="tutorial-step-row">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <strong>Kelola Stres & Energi Karyawan ☕</strong>
+                <p>Karyawan yang stres (>80%) bisa 💥 <em>Burnout</em> dan berhenti bekerja!</p>
+                <ul style="margin:0.25rem 0 0 1.2rem; font-size:0.85rem; color:#cbd5e1;">
+                  <li><strong>Beri Espresso ☕:</strong> Kurangi stres 40% + Turbo Speed 1.6x!</li>
+                  <li><strong>Pep Talk 💖:</strong> Klik meja karyawan lalu beri pujian (-25% stres).</li>
+                  <li><strong>Istirahat di Sofa 🛋️:</strong> Kirim ke sofa lounge untuk reset stres jadi 0%!</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tutorial-step-row">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <strong>Kirim File (Deliver) & Raih Cuan 📤</strong>
+                <p>Setelah proyek selesai, klik <strong>Deliver 📤</strong> untuk mengirim ke klien dan menerima bayaran tunai ($$$).</p>
+              </div>
+            </div>
+
+            <div class="tutorial-step-row">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <strong>Beli Upgrade Kantor 🛒</strong>
+                <p>Beli Mesin Kopi Turbo, Kursi Ergonomis, Monitor Ganda, dan Pesta Donat untuk mempermudah pekerjaan kantor!</p>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-primary" id="btn-start-working" style="margin-top:1.25rem; width:100%;">SIAP BEKERJA! 🚀</button>
+        </div>
       </div>
 
       <!-- 3D Canvas Mount Point -->
