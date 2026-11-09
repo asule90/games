@@ -19,8 +19,8 @@ export class BackgroundEffect {
 
   init() {
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-    this.camera.position.z = 25;
+    this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 120);
+    this.camera.position.z = 26;
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
@@ -30,51 +30,69 @@ export class BackgroundEffect {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    // Warm, cheerful lighting
+    const ambientLight = new THREE.AmbientLight(0xfff5ee, 0.7);
     this.scene.add(ambientLight);
 
-    const pLight1 = new THREE.PointLight(0x00f0ff, 2.5, 50);
-    pLight1.position.set(-15, 15, 10);
-    this.scene.add(pLight1);
+    const sunLight = new THREE.DirectionalLight(0xffdf88, 1.4);
+    sunLight.position.set(12, 18, 15);
+    this.scene.add(sunLight);
 
-    const pLight2 = new THREE.PointLight(0xff007f, 2.0, 50);
-    pLight2.position.set(15, -15, 5);
-    this.scene.add(pLight2);
+    const candyLight = new THREE.PointLight(0xff66b2, 2.0, 45);
+    candyLight.position.set(-15, 10, 8);
+    this.scene.add(candyLight);
 
-    // Floating Glowing Shapes
+    const mintLight = new THREE.PointLight(0x00f0ff, 1.8, 45);
+    mintLight.position.set(15, -12, 6);
+    this.scene.add(mintLight);
+
+    // Fun & Playful Shapes (Donuts, Stars, Toy Cubes, Sweet Spheres)
     const geometries = [
-      new THREE.IcosahedronGeometry(1.8, 0),
-      new THREE.TorusGeometry(1.5, 0.4, 16, 32),
-      new THREE.OctahedronGeometry(1.6, 0),
-      new THREE.TetrahedronGeometry(2.0, 0)
+      new THREE.TorusGeometry(1.4, 0.55, 16, 32), // Glazed Donut
+      new THREE.IcosahedronGeometry(1.6, 0),       // Gem / Star
+      new THREE.SphereGeometry(1.3, 24, 24),       // Bubble / Marbles
+      new THREE.BoxGeometry(1.8, 1.8, 1.8),        // Lucky Toy Block
+      new THREE.OctahedronGeometry(1.5, 0)         // Crystal Candy
     ];
 
-    const colors = [0x00f0ff, 0xff007f, 0xa855f7, 0x00ff88, 0x3b82f6];
+    // Cheerful pastel candy palette
+    const colors = [
+      0xff6b8b, // Strawberry Pink
+      0xffb03a, // Sunny Orange
+      0xffd43b, // Golden Lemon
+      0x48dbfb, // Sky Blue
+      0x1dd1a1, // Mint Green
+      0xa55eea  // Sweet Lavender
+    ];
 
-    for (let i = 0; i < 22; i++) {
+    for (let i = 0; i < 28; i++) {
       const geo = geometries[i % geometries.length];
+      const color = colors[i % colors.length];
+
       const mat = new THREE.MeshStandardMaterial({
-        color: colors[i % colors.length],
-        wireframe: i % 2 === 0,
-        roughness: 0.3,
-        metalness: 0.8,
+        color: color,
+        roughness: 0.25,
+        metalness: 0.15,
         transparent: true,
-        opacity: 0.45
+        opacity: 0.72
       });
+
       const mesh = new THREE.Mesh(geo, mat);
 
       mesh.position.set(
-        (Math.random() - 0.5) * 45,
-        (Math.random() - 0.5) * 30,
-        (Math.random() - 0.5) * 20 - 5
+        (Math.random() - 0.5) * 44,
+        (Math.random() - 0.5) * 32,
+        (Math.random() - 0.5) * 18 - 4
       );
 
       mesh.userData = {
-        rx: (Math.random() - 0.5) * 0.8,
-        ry: (Math.random() - 0.5) * 0.8,
+        rx: (Math.random() - 0.5) * 0.7,
+        ry: (Math.random() - 0.5) * 0.7,
+        rz: (Math.random() - 0.5) * 0.5,
         initY: mesh.position.y,
-        floatSpeed: 0.5 + Math.random() * 0.8,
+        initX: mesh.position.x,
+        floatSpeed: 0.6 + Math.random() * 0.9,
+        floatAmp: 1.2 + Math.random() * 1.5,
         floatOffset: Math.random() * Math.PI * 2
       };
 
@@ -96,25 +114,27 @@ export class BackgroundEffect {
   }
 
   onMouseMove(e) {
-    this.targetMouseX = (e.clientX / window.innerWidth - 0.5) * 4;
-    this.targetMouseY = (e.clientY / window.innerHeight - 0.5) * -4;
+    this.targetMouseX = (e.clientX / window.innerWidth - 0.5) * 3.5;
+    this.targetMouseY = (e.clientY / window.innerHeight - 0.5) * -3.5;
   }
 
   animate() {
     requestAnimationFrame(() => this.animate());
 
-    this.mouseX += (this.targetMouseX - this.mouseX) * 0.05;
-    this.mouseY += (this.targetMouseY - this.mouseY) * 0.05;
+    this.mouseX += (this.targetMouseX - this.mouseX) * 0.04;
+    this.mouseY += (this.targetMouseY - this.mouseY) * 0.04;
 
     this.camera.position.x = this.mouseX;
     this.camera.position.y = this.mouseY;
     this.camera.lookAt(0, 0, 0);
 
-    const time = Date.now() * 0.001;
+    const time = Date.now() * 0.0012;
     this.shapes.forEach((s) => {
-      s.rotation.x += s.userData.rx * 0.01;
-      s.rotation.y += s.userData.ry * 0.01;
-      s.position.y = s.userData.initY + Math.sin(time * s.userData.floatSpeed + s.userData.floatOffset) * 1.5;
+      s.rotation.x += s.userData.rx * 0.015;
+      s.rotation.y += s.userData.ry * 0.015;
+      s.rotation.z += s.userData.rz * 0.01;
+      s.position.y = s.userData.initY + Math.sin(time * s.userData.floatSpeed + s.userData.floatOffset) * s.userData.floatAmp;
+      s.position.x = s.userData.initX + Math.cos(time * (s.userData.floatSpeed * 0.7) + s.userData.floatOffset) * 0.8;
     });
 
     this.renderer.render(this.scene, this.camera);

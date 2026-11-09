@@ -101,31 +101,44 @@ function renderGameGrid() {
 
     const highScore = localStorage.getItem(`highscore_${game.id}`) || '0';
 
+    let iconSvg = '';
+    if (game.id === 'miss-management') {
+      iconSvg = `<span style="font-size: 2.2rem;">💼</span>`;
+    } else if (game.id === 'cyber-runner') {
+      iconSvg = `<span style="font-size: 2.2rem;">🚀</span>`;
+    } else if (game.id === 'tower-stacker') {
+      iconSvg = `<span style="font-size: 2.2rem;">🧱</span>`;
+    } else if (game.id === 'cosmic-marble') {
+      iconSvg = `<span style="font-size: 2.2rem;">🔮</span>`;
+    } else if (game.id === 'neon-pong') {
+      iconSvg = `<span style="font-size: 2.2rem;">🏓</span>`;
+    } else {
+      iconSvg = `<span style="font-size: 2.2rem;">🎮</span>`;
+    }
+
+    card.style.setProperty('--card-accent', game.color);
+
     card.innerHTML = `
       <div class="card-banner">
-        <div class="card-banner-bg" style="background: linear-gradient(135deg, ${game.color}33, #080c1e);"></div>
+        <div class="card-banner-bg" style="background: radial-gradient(circle at center, ${game.color}55, #12102b 75%);"></div>
         <div class="card-banner-overlay"></div>
-        <div class="card-tag" style="color:${game.color}; border-color:${game.color}66;">${game.badge}</div>
-        <div class="card-icon-badge" style="background: radial-gradient(circle at top, ${game.color}44, #12182b);">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="${game.color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
+        <div class="card-tag" style="color:#ffffff; background:${game.color}cc; border-color:${game.color};">${game.badge}</div>
+        <div class="card-icon-badge" style="background: linear-gradient(135deg, ${game.color}44, #1f1b40);">
+          ${iconSvg}
         </div>
       </div>
       <div class="card-body">
-        <div class="card-category">${game.category}</div>
+        <div class="card-category" style="color:${game.color};">${game.category}</div>
         <h3 class="card-title">${game.title}</h3>
         <p class="card-desc">${game.description}</p>
         <div class="card-footer">
           <div class="high-score-tag">
-            <span class="high-score-label">BEST RECORD</span>
+            <span class="high-score-label">BEST RECORD ⭐</span>
             <span class="high-score-val">${highScore}</span>
           </div>
           <button class="btn-play">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-            PLAY NOW
+            <span>PLAY NOW</span>
+            <span>🎮</span>
           </button>
         </div>
       </div>
