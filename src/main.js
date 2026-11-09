@@ -145,8 +145,6 @@ function renderGameGrid() {
       iconSvg = `<span style="font-size: 2.2rem;">🚀</span>`;
     } else if (game.id === 'tower-stacker') {
       iconSvg = `<span style="font-size: 2.2rem;">🧱</span>`;
-    } else if (game.id === 'cosmic-marble') {
-      iconSvg = `<span style="font-size: 2.2rem;">🔮</span>`;
     } else if (game.id === 'neon-pong') {
       iconSvg = `<span style="font-size: 2.2rem;">🏓</span>`;
     } else {

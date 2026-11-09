@@ -2,7 +2,6 @@ import { MissManagementGame } from '../games/miss-management/MissManagementGame.
 import { TetrisGame } from '../games/tetris/TetrisGame.js';
 import { CyberRunnerGame } from '../games/cyber-runner/CyberRunnerGame.js';
 import { TowerStackerGame } from '../games/tower-stacker/TowerStackerGame.js';
-import { CosmicMarbleGame } from '../games/cosmic-marble/CosmicMarbleGame.js';
 import { CyberPongGame } from '../games/neon-pong/CyberPongGame.js';
 
 export const gamesRegistry = [
@@ -65,21 +64,6 @@ export const gamesRegistry = [
       mobile: ['Tap anywhere on screen to drop block']
     },
     GameClass: TowerStackerGame
-  },
-  {
-    id: 'cosmic-marble',
-    title: 'Cosmic Marble 3D',
-    subtitle: 'Sky Maze & Relic Hunt',
-    category: 'Physics / Skill',
-    badge: '✨ Magic Marble',
-    color: '#feca57',
-    gradient: 'from-amber-400/20 to-orange-500/20',
-    description: 'Gently roll a magical sphere across floating puzzle islands in the sky. Collect all the golden star relics to open the warp portal to the next level!',
-    controls: {
-      desktop: ['W A S D or Arrow Keys to roll marble', 'Hold & Drag mouse to steer', 'P or Esc to Pause'],
-      mobile: ['Drag finger to steer and roll marble']
-    },
-    GameClass: CosmicMarbleGame
   },
   {
     id: 'neon-pong',
