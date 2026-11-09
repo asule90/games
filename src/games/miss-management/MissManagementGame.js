@@ -33,6 +33,7 @@ export class MissManagementGame extends BaseGame {
     this.isBrewing = false;
     this.brewTimer = 0;
     this.brewDuration = 5;
+    this.coffeeCupMeshes = [];
 
     // Employees list
     this.employees = [
@@ -750,9 +751,11 @@ export class MissManagementGame extends BaseGame {
     }
 
     // Update Coffee Cup mesh visibility
-    this.coffeeCupMeshes.forEach((mesh, idx) => {
-      mesh.visible = idx < this.coffeeCupsReady;
-    });
+    if (this.coffeeCupMeshes && this.coffeeCupMeshes.length > 0) {
+      this.coffeeCupMeshes.forEach((mesh, idx) => {
+        if (mesh) mesh.visible = idx < this.coffeeCupsReady;
+      });
+    }
 
     // Spawn new incoming client projects
     this.projectSpawnTimer -= delta;

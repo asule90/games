@@ -14,6 +14,7 @@ export class BaseGame {
     this.isRunning = false;
     this.isPaused = false;
     this.isGameOver = false;
+    this.isInitialized = false;
 
     // Callbacks
     this.onScoreUpdate = options.onScoreUpdate || (() => {});
@@ -25,37 +26,33 @@ export class BaseGame {
 
   init(container) {
     this.container = container;
-    this.scene = new THREE.Scene();
+    this.isInitialized = false;
 
     const width = this.container.clientWidth || window.innerWidth;
     const height = this.container.clientHeight || window.innerHeight;
 
     try {
-      // First attempt: High quality
       this.renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: false,
         alpha: true,
-        powerPreference: 'default'
+        powerPreference: 'default',
+        precision: 'mediump'
       });
-    } catch (err1) {
-      console.warn('Initial WebGL init failed, attempting safe fallback without antialias...', err1);
-      try {
-        // Second attempt: Safe basic fallback
-        this.renderer = new THREE.WebGLRenderer({
-          antialias: false,
-          alpha: true,
-          powerPreference: 'default',
-          precision: 'mediump'
-        });
-      } catch (err2) {
-        console.error('WebGL is not available in browser:', err2);
-        this.showWebGLErrorNotice(container);
-        return;
-      }
+    } catch (err) {
+      console.warn('WebGLRenderer creation failed in browser:', err);
+      this.showWebGLErrorNotice(container);
+      return false;
     }
 
+    if (!this.renderer) {
+      this.showWebGLErrorNotice(container);
+      return false;
+    }
+
+    this.scene = new THREE.Scene();
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
     try {
       this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -67,10 +64,17 @@ export class BaseGame {
     this.setupCamera(width, height);
     this.setupScene();
     this.setupControls();
+    this.isInitialized = true;
+    return true;
   }
 
   showWebGLErrorNotice(container) {
+    if (!container) return;
+    const prev = container.querySelector('.webgl-notice-overlay');
+    if (prev) prev.remove();
+
     const notice = document.createElement('div');
+    notice.className = 'webgl-notice-overlay';
     notice.style.cssText = `
       position: absolute;
       inset: 0;
@@ -78,29 +82,40 @@ export class BaseGame {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: #181534;
+      background: #15132d;
       color: #fff;
       padding: 2rem;
       text-align: center;
-      font-family: sans-serif;
+      font-family: var(--font-body, sans-serif);
       z-index: 200;
     `;
     notice.innerHTML = `
-      <div style="font-size: 3.5rem; margin-bottom: 1rem;">🎮</div>
-      <h2 style="font-size: 1.8rem; margin-bottom: 1rem; color: #ff6b8b;">WebGL Belum Aktif di Browser</h2>
-      <p style="max-width: 520px; line-height: 1.6; color: #cbd5e1; margin-bottom: 1.5rem;">
-        Peramban Anda saat ini memblokir WebGL (Software Mesa Renderer). Silakan aktifkan opsi 
-        <strong>"Use graphics acceleration when available"</strong> di pengaturan browser Anda (<code>chrome://settings/system</code> atau <code>brave://settings/system</code>), lalu restart browser.
+      <div style="font-size: 3.5rem; margin-bottom: 0.75rem;">🛠️</div>
+      <h2 style="font-size: 1.8rem; margin-bottom: 0.75rem; color: #feca57; font-family: var(--font-display, sans-serif);">WebGL 2 Diblokir Internal oleh Browser (Linux)</h2>
+      <p style="max-width: 580px; line-height: 1.6; color: #cbd5e1; margin-bottom: 1.25rem; font-size: 0.95rem;">
+        Peramban Chromium / Brave di Linux secara default memblokir WebGL 2 pada driver grafis Mesa (<em>BindToCurrentSequence failed</em>) meskipun tombol akselerasi grafis di menu Settings sudah aktif.
       </p>
+      <div style="background: rgba(0,0,0,0.45); border: 2px dashed #ff6b8b; border-radius: 18px; padding: 1.25rem 1.5rem; max-width: 540px; text-align: left; margin-bottom: 1.5rem;">
+        <p style="font-weight: 800; color: #ff6b8b; margin-bottom: 0.6rem; font-size: 1.05rem;">💡 Solusi Mudah (Cukup 1 Langkah):</p>
+        <ol style="margin-left: 1.25rem; line-height: 1.8; color: #f8fafc; font-size: 0.95rem;">
+          <li>Buka tab baru: <strong>chrome://flags</strong> (atau <strong>brave://flags</strong>)</li>
+          <li>Cari flag: <strong>Override software rendering list</strong> (<code>#ignore-gpu-blocklist</code>)</li>
+          <li>Ubah statusnya dari <em>Default</em> menjadi <strong style="color:#10b981;">Enabled</strong></li>
+          <li>Klik tombol <strong>Relaunch</strong> di pojok kanan bawah browser.</li>
+        </ol>
+      </div>
       <button onclick="window.location.hash='#/'" style="
         background: linear-gradient(135deg, #ff6b8b, #ff9f43);
         border: none;
         color: #fff;
-        font-weight: bold;
-        padding: 0.8rem 1.6rem;
+        font-family: var(--font-display, sans-serif);
+        font-weight: 800;
+        font-size: 1rem;
+        padding: 0.85rem 1.8rem;
         border-radius: 9999px;
         cursor: pointer;
-      ">Kembali ke Beranda</button>
+        box-shadow: 0 6px 20px rgba(255, 107, 139, 0.4);
+      ">← Kembali ke Beranda</button>
     `;
     container.appendChild(notice);
   }
@@ -141,6 +156,10 @@ export class BaseGame {
   }
 
   start() {
+    if (!this.isInitialized || !this.renderer) {
+      console.warn('Game cannot start because WebGL renderer is not initialized.');
+      return;
+    }
     this.isRunning = true;
     this.isPaused = false;
     this.isGameOver = false;
@@ -155,13 +174,14 @@ export class BaseGame {
   }
 
   resume() {
-    if (!this.isGameOver) {
+    if (!this.isGameOver && this.isInitialized) {
       this.isPaused = false;
       this.clock.start();
     }
   }
 
   restart() {
+    if (!this.isInitialized) return;
     this.resetState();
     this.start();
   }
@@ -202,7 +222,7 @@ export class BaseGame {
   }
 
   loop() {
-    if (!this.isRunning) return;
+    if (!this.isRunning || !this.isInitialized || !this.renderer) return;
 
     this.animationFrameId = requestAnimationFrame(() => this.loop());
 
@@ -222,6 +242,8 @@ export class BaseGame {
 
   destroy() {
     this.isRunning = false;
+    this.isInitialized = false;
+
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -252,6 +274,11 @@ export class BaseGame {
         this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
       }
       this.renderer.dispose();
+    }
+
+    if (this.container) {
+      const notice = this.container.querySelector('.webgl-notice-overlay');
+      if (notice) notice.remove();
     }
 
     this.scene = null;

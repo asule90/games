@@ -228,8 +228,12 @@ function launchGame(gameId) {
     }
   });
 
-  currentGameInstance.init(canvasContainer);
-  currentGameInstance.start();
+  const ok = currentGameInstance.init(canvasContainer);
+  if (ok && currentGameInstance.isInitialized) {
+    currentGameInstance.start();
+  } else {
+    if (officeHud) officeHud.style.display = 'none';
+  }
 
   // Custom mobile controls visibility/labeling
   setupMobileControls(gameId);
