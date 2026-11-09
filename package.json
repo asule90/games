@@ -1,0 +1,19 @@
+{
+  "name": "threejs-arcade-games",
+  "version": "1.0.0",
+  "description": "3D WebGL / Three.js Arcade Games Portal",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 3000"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.4",
+    "lucide": "^1.70.0",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.7"
+  }
+}

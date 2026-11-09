@@ -1,0 +1,26 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: games-web
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.games-http.rule=Host(`games.asepsulaeman.com`)"
+      - "traefik.http.routers.games-http.entrypoints=web"
+      - "traefik.http.routers.games-http.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.games-https.rule=Host(`games.asepsulaeman.com`)"
+      - "traefik.http.routers.games-https.entrypoints=websecure"
+      - "traefik.http.routers.games-https.tls=true"
+      - "traefik.http.routers.games-https.tls.certresolver=letsencrypt"
+      - "traefik.http.services.games.loadbalancer.server.port=80"
+    networks:
+      - dokploy-network
+      - default
+
+networks:
+  dokploy-network:
+    external: true
+    name: dokploy-network

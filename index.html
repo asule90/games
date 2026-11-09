@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CyberArcade 3D | Three.js WebGL Games</title>
+  <meta name="description" content="Play high quality, hardware-accelerated 3D HTML5 & Three.js arcade games directly in your browser." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <!-- 3D Polyhedral ambient background -->
+  <canvas id="bg-canvas"></canvas>
+
+  <div id="app">
+    <!-- Navbar -->
+    <header>
+      <div class="logo-container" id="nav-home-btn">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <span class="logo-text">CYBERARCADE</span>
+      </div>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="audio-toggle-btn" title="Toggle Sound (M)">
+          <svg id="audio-icon-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <svg id="audio-icon-off" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+
+        <button class="icon-btn" id="fullscreen-btn" title="Fullscreen (F)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Arcade Portal View -->
+    <main id="portal-view">
+      <section class="hero">
+        <div class="hero-tagline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          Next-Gen WebGL Arcade
+        </div>
+        <h1 class="hero-title">Experience 3D Web Games</h1>
+        <p class="hero-subtitle">Instant-play Three.js 3D games right in your browser. No downloads, zero latency, 60fps real-time physics and cyberpunk visuals.</p>
+      </section>
+
+      <section class="games-section">
+        <div class="games-grid" id="games-grid">
+          <!-- Game cards dynamically rendered here -->
+        </div>
+      </section>
+    </main>
+
+    <!-- In-Game View Container -->
+    <div id="game-view">
+      <!-- Top HUD -->
+      <div class="game-hud">
+        <div class="hud-actions hud-interactive">
+          <button class="icon-btn" id="btn-back-hub" title="Exit to Hub">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          <div class="hud-pill" id="game-title-pill">
+            <span id="current-game-title" style="font-weight:700; font-family:var(--font-display); font-size: 0.95rem;">Game Title</span>
+          </div>
+        </div>
+
+        <div class="hud-pill">
+          <span class="hud-score-label">Score</span>
+          <span class="hud-score-val" id="hud-score-text">0</span>
+        </div>
+
+        <div class="hud-actions hud-interactive">
+          <button class="icon-btn" id="btn-pause-game" title="Pause Game (P)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3D Canvas Mount Point -->
+      <div id="game-canvas-container"></div>
+
+      <!-- Mobile D-pad / Touch Controls -->
+      <div class="mobile-controls-overlay" id="mobile-controls">
+        <div style="display:flex; gap:0.75rem;">
+          <button class="mobile-dpad-btn" id="m-btn-left">◀</button>
+          <button class="mobile-dpad-btn" id="m-btn-right">▶</button>
+        </div>
+        <div>
+          <button class="mobile-dpad-btn" id="m-btn-action" style="width:70px; height:70px; background:rgba(0,240,255,0.25);">▲</button>
+        </div>
+      </div>
+
+      <!-- Pause Modal -->
+      <div class="modal-overlay" id="pause-modal">
+        <div class="modal-content">
+          <h2 class="modal-title">GAME PAUSED</h2>
+          <p style="color:var(--text-secondary); margin-bottom: 2rem;">Take a breath, pilot!</p>
+          <div class="modal-buttons">
+            <button class="btn-primary" id="btn-resume">RESUME PLAY</button>
+            <button class="btn-secondary" id="btn-restart-paused">RESTART</button>
+            <button class="btn-secondary" id="btn-quit-paused">EXIT TO MENU</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Over Modal -->
+      <div class="modal-overlay" id="gameover-modal">
+        <div class="modal-content">
+          <h2 class="modal-title" style="color:var(--accent-pink);">GAME OVER</h2>
+          <div id="new-record-flag" class="new-record-badge" style="display:none;">🏆 NEW HIGH SCORE!</div>
+          <div class="hud-score-label">FINAL SCORE</div>
+          <div class="modal-score" id="gameover-score">0</div>
+          <div class="modal-buttons">
+            <button class="btn-primary" id="btn-restart-gameover">PLAY AGAIN</button>
+            <button class="btn-secondary" id="btn-quit-gameover">EXIT TO HUB</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>&copy; 2026 CyberArcade 3D &bull; Powered by Three.js &bull; Hosted on games.asepsulaeman.com</p>
+    </footer>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
