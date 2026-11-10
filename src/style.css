@@ -1013,6 +1013,265 @@ header {
   transform: scale(0.92);
 }
 
+/* ==========================================================================
+   Responsive & Mobile Grid Layout for Game Home Page
+   ========================================================================== */
+
+/* Tablet & Intermediate Screens (641px - 900px) */
+@media (max-width: 900px) and (min-width: 641px) {
+  .hero {
+    margin: 2.25rem auto 1.5rem;
+    padding: 0 1.25rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 1.8rem;
+  }
+
+  .games-section {
+    padding: 0 1.25rem 3.5rem;
+  }
+
+  .games-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .card-banner {
+    height: 140px;
+  }
+
+  .card-icon-badge {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+  }
+
+  .card-body {
+    padding: 1.15rem;
+  }
+
+  .card-title {
+    font-size: 1.2rem;
+  }
+}
+
+/* Mobile View: Compact 2-Column Grid (< 640px) */
+@media (max-width: 640px) {
+  header {
+    padding: 0.75rem 1rem;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+  }
+
+  .logo-text {
+    font-size: 1.25rem;
+  }
+
+  .logo-subtitle {
+    font-size: 0.6rem;
+  }
+
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  /* Compact Hero on Mobile */
+  .hero {
+    margin: 1.25rem auto 1rem;
+    padding: 0 0.85rem;
+  }
+
+  .hero-tagline {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.8rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .hero-title {
+    font-size: 1.75rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.85rem;
+    line-height: 1.45;
+    margin-bottom: 1.2rem;
+  }
+
+  /* Compact Home Page Games Grid */
+  .games-section {
+    padding: 0 0.75rem 2.5rem;
+  }
+
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+
+  .game-card {
+    border-radius: 18px;
+    border-width: 1.5px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  }
+
+  .card-banner {
+    height: 100px;
+  }
+
+  .card-tag {
+    top: 0.35rem;
+    right: 0.35rem;
+    font-size: 0.58rem;
+    font-weight: 800;
+    padding: 0.18rem 0.45rem;
+    border-radius: 9999px;
+    max-width: 82%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border-width: 1.5px;
+  }
+
+  .card-icon-badge span {
+    font-size: 1.4rem !important;
+  }
+
+  .card-body {
+    padding: 0.65rem 0.65rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .card-category {
+    font-size: 0.62rem;
+    letter-spacing: 0.4px;
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+    line-height: 1.2;
+    margin-bottom: 0.3rem;
+  }
+
+  .card-desc {
+    font-size: 0.74rem;
+    line-height: 1.35;
+    margin-bottom: 0.55rem;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .card-footer {
+    padding-top: 0.45rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+  }
+
+  .high-score-tag {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .high-score-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.3px;
+  }
+
+  .high-score-val {
+    font-size: 0.9rem;
+  }
+
+  .btn-play {
+    width: 100%;
+    justify-content: center;
+    padding: 0.42rem 0.6rem;
+    font-size: 0.78rem;
+    border-radius: 10px;
+    gap: 0.35rem;
+  }
+}
+
+/* Extra small screens (<= 360px) */
+@media (max-width: 360px) {
+  .games-section {
+    padding: 0 0.5rem 2rem;
+  }
+
+  .games-grid {
+    gap: 0.45rem;
+  }
+
+  .card-banner {
+    height: 85px;
+  }
+
+  .card-icon-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .card-icon-badge span {
+    font-size: 1.15rem !important;
+  }
+
+  .card-body {
+    padding: 0.5rem;
+  }
+
+  .card-title {
+    font-size: 0.88rem;
+  }
+
+  .card-desc {
+    font-size: 0.7rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .btn-play {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.5rem;
+  }
+}
+
+@media (hover: none) {
+  .game-card:hover {
+    transform: none;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  }
+
+  .game-card:active {
+    transform: scale(0.97);
+  }
+}
+
 /* Footer */
 footer {
   margin-top: auto;
