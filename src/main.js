@@ -227,7 +227,11 @@ function launchGame(gameId) {
       hudScoreText.textContent = score.toLocaleString();
     },
     onStatsUpdate: (stats) => {
-      if (gameId === 'miss-management' && stats) {
+      if (gameId === 'neon-pong' && stats) {
+        if (stats.playerScore !== undefined && stats.aiScore !== undefined) {
+          currentGameTitle.innerHTML = `<span style="color:#00f0ff;font-weight:900;">YOU ${stats.playerScore}</span> &nbsp;—&nbsp; <span style="color:#ff0077;font-weight:900;">${stats.aiScore} AI</span> &nbsp;<span style="font-size:0.75rem;opacity:0.75;">(Target 7)</span>`;
+        }
+      } else if (gameId === 'miss-management' && stats) {
         latestOfficeStats = stats;
         if (stats.timeFormatted) officeClock.textContent = stats.timeFormatted;
         if (stats.cash !== undefined) officeCash.textContent = `$${stats.cash.toLocaleString()}`;
@@ -570,6 +574,13 @@ function setupMobileControls(gameId) {
     if (mBtnDown) mBtnDown.style.display = 'none';
     if (mBtnDrop) mBtnDrop.style.display = 'none';
     mBtnAction.textContent = '▲';
+  } else if (gameId === 'neon-pong') {
+    mBtnLeft.style.display = 'flex';
+    mBtnRight.style.display = 'flex';
+    if (mBtnDown) mBtnDown.style.display = 'none';
+    if (mBtnDrop) mBtnDrop.style.display = 'none';
+    mBtnAction.textContent = '⚡';
+    mBtnAction.title = 'Power Smash (Space)';
   } else {
     mBtnLeft.style.display = 'flex';
     mBtnRight.style.display = 'flex';
@@ -579,23 +590,29 @@ function setupMobileControls(gameId) {
   }
 }
 
+const clearLeftKey = (e) => {
+  e.preventDefault();
+  window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowLeft' }));
+};
 mBtnLeft.addEventListener('pointerdown', (e) => {
   e.preventDefault();
   window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ArrowLeft' }));
 });
-mBtnLeft.addEventListener('pointerup', (e) => {
-  e.preventDefault();
-  window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowLeft' }));
-});
+mBtnLeft.addEventListener('pointerup', clearLeftKey);
+mBtnLeft.addEventListener('pointercancel', clearLeftKey);
+mBtnLeft.addEventListener('pointerleave', clearLeftKey);
 
+const clearRightKey = (e) => {
+  e.preventDefault();
+  window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowRight' }));
+};
 mBtnRight.addEventListener('pointerdown', (e) => {
   e.preventDefault();
   window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ArrowRight' }));
 });
-mBtnRight.addEventListener('pointerup', (e) => {
-  e.preventDefault();
-  window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowRight' }));
-});
+mBtnRight.addEventListener('pointerup', clearRightKey);
+mBtnRight.addEventListener('pointercancel', clearRightKey);
+mBtnRight.addEventListener('pointerleave', clearRightKey);
 
 if (mBtnDown) {
   mBtnDown.addEventListener('pointerdown', (e) => {

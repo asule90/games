@@ -75,8 +75,8 @@ export const gamesRegistry = [
     gradient: 'from-emerald-400/20 to-teal-500/20',
     description: 'Enjoy a friendly game of 3D table hockey against an adorable computer buddy. Curve your shots, bounce off colorful side rails, and celebrate every goal with confetti!',
     controls: {
-      desktop: ['Move Mouse or A / D keys to glide paddle', 'P or Esc to Pause'],
-      mobile: ['Drag finger along bottom to glide paddle']
+      desktop: ['Move Mouse or A / D / Arrow keys to glide mallet', 'Space for Power Smash ⚡', 'P or Esc to Pause'],
+      mobile: ['Drag finger anywhere on screen or use ◀ / ▶ buttons', 'Tap ⚡ for Power Smash']
     },
     GameClass: CyberPongGame
   }
