@@ -8,7 +8,14 @@ Live URL: [https://games.asepsulaeman.com](https://games.asepsulaeman.com)
 
 ## 🎮 Included Games
 
-### 1. Cyber Runner 3D
+### 1. Saboteur 3D Gold Rush
+* **Genre**: Hidden-Role Board Game / Social Deduction (3–10 Players)
+* **Description**: The classic dwarf mining board game brought into 3D! Dig intricate tunnel paths toward the hidden gold nugget as a loyal Miner, or secretly sabotage the expedition with rockfalls and broken tools as the crafty Saboteur. Supports both instant offline solo play against smart AI bots and online multiplayer rooms with shareable room codes and QR invites!
+* **Controls**:
+  * Desktop: Click card in hand to select, click board grid cell to place path/action, `Rotate (180°)` button to flip orientation, drag to pan 3D mine camera.
+  * Mobile: Tap card to select, tap mine grid cell to place, touch-drag to pan camera.
+
+### 2. Cyber Runner 3D
 * **Genre**: Endless 3D Sci-Fi Runner
 * **Description**: Pilot a neon speeder through a high-speed hyperspace tunnel. Dodge laser barriers and spinning spikes while collecting energy crystals. Speed accelerates dynamically over time.
 * **Controls**:

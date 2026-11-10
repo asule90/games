@@ -211,6 +211,139 @@ class SoundManager {
       osc.stop(noteTime + 0.36);
     });
   }
+
+  // Saboteur Specific Sounds
+  playPickaxe() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+
+    // Metallic pickaxe cling
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1480, t);
+    osc.frequency.exponentialRampToValueAtTime(740, t + 0.12);
+
+    gain.gain.setValueAtTime(0.28, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.15);
+  }
+
+  playCardPlace() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(180, t);
+    osc.frequency.exponentialRampToValueAtTime(60, t + 0.08);
+
+    gain.gain.setValueAtTime(0.35, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.09);
+  }
+
+  playRockfall() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+
+    // Deep rumbling cave-in
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, t);
+    osc.frequency.linearRampToValueAtTime(45, t + 0.35);
+
+    gain.gain.setValueAtTime(0.3, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.38);
+  }
+
+  playGoldFound() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+
+    // Glorious gold shimmering arpeggio
+    const goldChimes = [587.33, 739.99, 880, 1174.66, 1479.98];
+    goldChimes.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const time = t + idx * 0.08;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, time);
+
+      gain.gain.setValueAtTime(0.22, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.45);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(time);
+      osc.stop(time + 0.46);
+    });
+  }
+
+  playToolBreak() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(600, t);
+    osc.frequency.exponentialRampToValueAtTime(120, t + 0.18);
+
+    gain.gain.setValueAtTime(0.25, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.2);
+  }
+
+  playToolRepair() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(350, t);
+    osc.frequency.exponentialRampToValueAtTime(700, t + 0.15);
+
+    gain.gain.setValueAtTime(0.2, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.16);
+  }
 }
 
 export const sounds = new SoundManager();

@@ -3,8 +3,32 @@ import { TetrisGame } from '../games/tetris/TetrisGame.js';
 import { CyberRunnerGame } from '../games/cyber-runner/CyberRunnerGame.js';
 import { TowerStackerGame } from '../games/tower-stacker/TowerStackerGame.js';
 import { CyberPongGame } from '../games/neon-pong/CyberPongGame.js';
+import { SaboteurGame } from '../games/saboteur/SaboteurGame.js';
 
 export const gamesRegistry = [
+  {
+    id: 'saboteur',
+    title: 'Saboteur 3D Gold Rush',
+    subtitle: 'Hidden Role Dwarf Board Game (3-10 Players)',
+    category: 'Board Game / Social Deduction',
+    badge: '💎 3-10 Players Multi',
+    color: '#fbbf24',
+    gradient: 'from-amber-500/20 to-yellow-600/20',
+    description: 'The legendary hidden-role mining card game in 3D! Dig tunnels to discover precious Gold as loyal Miners, or secretly sabotage the expedition with cave-ins and broken tools as the Saboteur. Supports 3 to 10 players online or solo vs smart AI!',
+    controls: {
+      desktop: [
+        'Click Card in Hand Tray to select',
+        'Click Board Grid to place Path or target Action',
+        'Rotate Card (180°) button to flip orientation',
+        'Click & Drag to pan 3D mine camera, Scroll to Zoom'
+      ],
+      mobile: [
+        'Tap Card in Hand to select, tap Mine Grid to place',
+        'Drag finger to pan around the 3D cavern'
+      ]
+    },
+    GameClass: SaboteurGame
+  },
   {
     id: 'miss-management',
     title: 'Miss Management 3D',

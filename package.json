@@ -11,7 +11,8 @@
   "dependencies": {
     "canvas-confetti": "^1.9.4",
     "lucide": "^1.70.0",
-    "three": "^0.187.0"
+    "three": "^0.187.0",
+    "ws": "^8.22.2"
   },
   "devDependencies": {
     "vite": "^8.3.7"
