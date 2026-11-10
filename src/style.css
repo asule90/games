@@ -194,7 +194,7 @@ header {
 
 /* Arcade Games Grid */
 .games-section {
-  max-width: 1250px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 0 2rem 5rem;
   width: 100%;
@@ -202,8 +202,8 @@ header {
 
 .games-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
 }
 
 .game-card {
@@ -228,7 +228,7 @@ header {
 }
 
 .card-banner {
-  height: 185px;
+  height: 160px;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -257,9 +257,9 @@ header {
 .card-icon-badge {
   position: relative;
   z-index: 2;
-  width: 74px;
-  height: 74px;
-  border-radius: 24px;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,22 +274,22 @@ header {
 
 .card-tag {
   position: absolute;
-  top: 1rem;
-  right: 1.1rem;
+  top: 0.85rem;
+  right: 0.95rem;
   z-index: 5;
   background: rgba(18, 17, 40, 0.75);
   backdrop-filter: blur(8px);
   border: 1.5px solid rgba(255, 255, 255, 0.2);
-  padding: 0.35rem 0.85rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 9999px;
   font-family: var(--font-display);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 800;
   letter-spacing: 0.4px;
 }
 
 .card-body {
-  padding: 1.6rem;
+  padding: 1.3rem;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -297,7 +297,7 @@ header {
 
 .card-title {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 800;
   margin-bottom: 0.35rem;
   line-height: 1.25;
@@ -305,19 +305,23 @@ header {
 
 .card-category {
   font-family: var(--font-display);
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 0.85rem;
+  letter-spacing: 0.6px;
+  margin-bottom: 0.6rem;
 }
 
 .card-desc {
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 500;
-  line-height: 1.55;
-  margin-bottom: 1.35rem;
+  line-height: 1.5;
+  margin-bottom: 1.2rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
   flex: 1;
 }
 
@@ -326,7 +330,8 @@ header {
   justify-content: space-between;
   align-items: center;
   border-top: 1.5px solid var(--border-color);
-  padding-top: 1.1rem;
+  padding-top: 0.95rem;
+  margin-top: auto;
 }
 
 .high-score-tag {
@@ -336,7 +341,7 @@ header {
 
 .high-score-label {
   font-family: var(--font-display);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
   text-transform: uppercase;
   font-weight: 700;
@@ -345,7 +350,7 @@ header {
 
 .high-score-val {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 900;
   color: var(--candy-yellow);
 }
@@ -355,16 +360,17 @@ header {
   color: #ffffff;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.95rem;
-  padding: 0.65rem 1.35rem;
-  border-radius: 16px;
+  font-size: 0.88rem;
+  padding: 0.58rem 1.15rem;
+  border-radius: 14px;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: 0 6px 18px rgba(255, 107, 139, 0.4);
+  white-space: nowrap;
 }
 
 .btn-play:hover {
@@ -1017,8 +1023,8 @@ header {
    Responsive & Mobile Grid Layout for Game Home Page
    ========================================================================== */
 
-/* Tablet & Intermediate Screens (641px - 900px) */
-@media (max-width: 900px) and (min-width: 641px) {
+/* Medium Desktop / Desktop-Site View on Mobile (860px - 1180px) */
+@media (max-width: 1180px) and (min-width: 860px) {
   .hero {
     margin: 2.25rem auto 1.5rem;
     padding: 0 1.25rem;
@@ -1038,17 +1044,102 @@ header {
   }
 
   .games-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .card-banner {
+    height: 135px;
+  }
+
+  .card-tag {
+    font-size: 0.65rem;
+    padding: 0.22rem 0.55rem;
+    top: 0.6rem;
+    right: 0.6rem;
+  }
+
+  .card-icon-badge {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+  }
+
+  .card-icon-badge span {
+    font-size: 1.6rem !important;
+  }
+
+  .card-body {
+    padding: 1rem 0.85rem;
+  }
+
+  .card-category {
+    font-size: 0.68rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .card-title {
+    font-size: 1.08rem;
+  }
+
+  .card-desc {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin-bottom: 0.9rem;
+  }
+
+  .card-footer {
+    padding-top: 0.75rem;
+  }
+
+  .high-score-label {
+    font-size: 0.6rem;
+  }
+
+  .high-score-val {
+    font-size: 1.05rem;
+  }
+
+  .btn-play {
+    padding: 0.48rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 12px;
+    gap: 0.35rem;
+  }
+}
+
+/* Tablet & Intermediate Screens (641px - 859px) */
+@media (max-width: 859px) and (min-width: 641px) {
+  .hero {
+    margin: 2rem auto 1.25rem;
+    padding: 0 1.25rem;
+  }
+
+  .hero-title {
+    font-size: 2.2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .games-section {
+    padding: 0 1.25rem 3.5rem;
+  }
+
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
   }
 
   .card-banner {
-    height: 140px;
+    height: 145px;
   }
 
   .card-icon-badge {
-    width: 58px;
-    height: 58px;
+    width: 56px;
+    height: 56px;
     border-radius: 18px;
   }
 
