@@ -1,4 +1,4 @@
-// Saboteur 3D - Three.js WebGL Board Game with Offline & Online Multiplayer
+// Saboteur 3D - Three.js WebGL Board Game with Offline, Online Multiplayer & 2D Canvas Fallback
 import * as THREE from 'three';
 import { BaseGame } from '../BaseGame.js';
 import { sounds } from '../../audio/SoundManager.js';
@@ -21,6 +21,19 @@ export class SaboteurGame extends BaseGame {
     this.playerCount = 4;
     this.playerName = localStorage.getItem('saboteur_player_name') || 'Penambang Berani';
     this.playerAvatar = '🧔';
+
+    // 2D Canvas Fallback Support
+    this.supports2DFallback = true;
+    this.is2DMode = false;
+    this.canvas2d = null;
+    this.ctx2d = null;
+    this.panOffset = { x: -60, y: 0 };
+    this.zoom2d = 1.0;
+    this.cardCanvasCache = new Map();
+    this.animFrame2D = null;
+    this.isDragging2D = false;
+    this.dragStart2D = { x: 0, y: 0 };
+    this.dragDistance2D = 0;
 
     // State Engines
     this.localState = null;
@@ -60,11 +73,19 @@ export class SaboteurGame extends BaseGame {
     // DOM UI Container
     this.uiOverlay = null;
 
-    // Bound listeners
+    // Bound listeners for 3D
     this.onPointerDown = this.onPointerDown.bind(this);
     this.onPointerMove = this.onPointerMove.bind(this);
     this.onPointerUp = this.onPointerUp.bind(this);
     this.onWheel = this.onWheel.bind(this);
+
+    // Bound listeners for 2D Fallback
+    this.on2DPointerDown = this.on2DPointerDown.bind(this);
+    this.on2DPointerMove = this.on2DPointerMove.bind(this);
+    this.on2DPointerUp = this.on2DPointerUp.bind(this);
+    this.on2DWheel = this.on2DWheel.bind(this);
+    this.handle2DResize = this.handle2DResize.bind(this);
+    this.render2DLoop = this.render2DLoop.bind(this);
   }
 
   setupCamera(width, height) {
@@ -125,7 +146,6 @@ export class SaboteurGame extends BaseGame {
     const gridGroup = new THREE.Group();
     const lineMat = new THREE.LineBasicMaterial({ color: 0x332822, transparent: true, opacity: 0.6 });
 
-    // Draw subtle guideline grid
     for (let x = this.boardMinX; x <= this.boardMaxX + 1; x++) {
       const points = [];
       const wx = (x - 0.5) * this.cellWidth;
@@ -161,7 +181,6 @@ export class SaboteurGame extends BaseGame {
       torchLight.position.copy(pos);
       this.scene.add(torchLight);
 
-      // Torch flame particle
       const flameGeo = new THREE.SphereGeometry(0.2, 8, 8);
       const flameMat = new THREE.MeshBasicMaterial({ color: 0xffaa33 });
       const flame = new THREE.Mesh(flameGeo, flameMat);
@@ -181,12 +200,231 @@ export class SaboteurGame extends BaseGame {
   }
 
   init(container) {
+    this.container = container;
+
+    // Try standard WebGL first
     const ok = super.init(container);
-    if (!ok) return false;
+    if (!ok) {
+      console.log('WebGL context failed. Initializing Saboteur in 2D Canvas Fallback Mode...');
+      const notice = container.querySelector('.webgl-notice-overlay');
+      if (notice) notice.remove();
+
+      this.init2DMode(container);
+      return true;
+    }
 
     this.createDomUI();
     this.startSoloGame(4);
     return true;
+  }
+
+  // Canvas 2D Fallback Initialization
+  init2DMode(container) {
+    this.is2DMode = true;
+
+    this.canvas2d = document.createElement('canvas');
+    this.canvas2d.className = 'saboteur-2d-canvas';
+    this.canvas2d.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; display:block; background:#0e0c0b; cursor:grab; z-index:5;';
+    container.appendChild(this.canvas2d);
+    this.ctx2d = this.canvas2d.getContext('2d');
+
+    this.handle2DResize();
+    window.addEventListener('resize', this.handle2DResize);
+
+    // Event listeners on 2D Canvas
+    this.canvas2d.addEventListener('pointerdown', this.on2DPointerDown);
+    this.canvas2d.addEventListener('pointermove', this.on2DPointerMove);
+    this.canvas2d.addEventListener('pointerup', this.on2DPointerUp);
+    this.canvas2d.addEventListener('wheel', this.on2DWheel, { passive: false });
+
+    this.createDomUI();
+
+    // Show 2D Mode Badge in UI
+    const modeBadge = document.createElement('div');
+    modeBadge.style.cssText = 'position:absolute; top:3.8rem; left:50%; transform:translateX(-50%); background:rgba(30,41,59,0.9); border:1px solid #3b82f6; color:#93c5fd; padding:3px 12px; border-radius:9999px; font-size:0.75rem; font-weight:700; z-index:25; pointer-events:none; box-shadow:0 2px 8px rgba(0,0,0,0.5);';
+    modeBadge.innerHTML = '⚡ MODE GRAFIS 2D AKTIF (Bypass WebGL Linux)';
+    this.uiOverlay.appendChild(modeBadge);
+
+    this.startSoloGame(4);
+    this.isInitialized = true;
+  }
+
+  handle2DResize() {
+    if (!this.canvas2d) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const width = this.container.clientWidth || window.innerWidth;
+    const height = this.container.clientHeight || window.innerHeight;
+    this.canvas2d.width = width * dpr;
+    this.canvas2d.height = height * dpr;
+    this.canvasWidth = width;
+    this.canvasHeight = height;
+    if (this.ctx2d) {
+      this.ctx2d.resetTransform ? this.ctx2d.resetTransform() : this.ctx2d.setTransform(1, 0, 0, 1, 0, 0);
+      this.ctx2d.scale(dpr, dpr);
+    }
+  }
+
+  start() {
+    if (this.is2DMode) {
+      this.isRunning = true;
+      this.isPaused = false;
+      this.isGameOver = false;
+      this.score = 0;
+      this.onScoreUpdate(this.score);
+      this.render2DLoop();
+      return;
+    }
+    super.start();
+  }
+
+  // 2D Pointer Events
+  on2DPointerDown(e) {
+    this.isDragging2D = true;
+    this.dragStart2D = { x: e.clientX, y: e.clientY };
+    this.dragDistance2D = 0;
+    if (this.canvas2d) this.canvas2d.style.cursor = 'grabbing';
+  }
+
+  on2DPointerMove(e) {
+    if (this.isDragging2D) {
+      const dx = e.clientX - this.dragStart2D.x;
+      const dy = e.clientY - this.dragStart2D.y;
+      this.dragDistance2D += Math.abs(dx) + Math.abs(dy);
+      this.panOffset.x += dx;
+      this.panOffset.y += dy;
+      this.dragStart2D = { x: e.clientX, y: e.clientY };
+      return;
+    }
+
+    if (!this.canvas2d) return;
+    const rect = this.canvas2d.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    const cx = (rect.width / 2) + this.panOffset.x;
+    const cy = (rect.height / 2) + this.panOffset.y;
+
+    const cw = 100 * this.zoom2d;
+    const ch = 140 * this.zoom2d;
+    const gapX = 14 * this.zoom2d;
+    const gapY = 14 * this.zoom2d;
+    const pitchX = cw + gapX;
+    const pitchY = ch + gapY;
+
+    const gx = Math.round((mx - cx) / pitchX);
+    const gy = Math.round((my - cy) / pitchY);
+
+    if (gx >= this.boardMinX && gx <= this.boardMaxX && gy >= this.boardMinY && gy <= this.boardMaxY) {
+      this.hoverGridPos = { x: gx, y: gy };
+    } else {
+      this.hoverGridPos = null;
+    }
+  }
+
+  on2DPointerUp(e) {
+    if (this.canvas2d) this.canvas2d.style.cursor = 'grab';
+    const wasDragging = this.isDragging2D && this.dragDistance2D > 8;
+    this.isDragging2D = false;
+
+    if (!wasDragging && this.hoverGridPos) {
+      this.handleGridClick(this.hoverGridPos.x, this.hoverGridPos.y);
+    }
+  }
+
+  on2DWheel(e) {
+    e.preventDefault();
+    const zoomDelta = e.deltaY * 0.0012;
+    this.zoom2d = THREE.MathUtils.clamp(this.zoom2d - zoomDelta, 0.45, 2.2);
+  }
+
+  // 2D Render Loop
+  render2DLoop() {
+    if (!this.isRunning || !this.is2DMode || !this.ctx2d) return;
+
+    const ctx = this.ctx2d;
+    const width = this.canvasWidth || this.canvas2d.width;
+    const height = this.canvasHeight || this.canvas2d.height;
+
+    // Clear background
+    ctx.fillStyle = '#0e0c0b';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.save();
+    ctx.translate(width / 2 + this.panOffset.x, height / 2 + this.panOffset.y);
+    ctx.scale(this.zoom2d, this.zoom2d);
+
+    const cw = 100;
+    const ch = 140;
+    const gapX = 14;
+    const gapY = 14;
+    const pitchX = cw + gapX;
+    const pitchY = ch + gapY;
+
+    // 1. Draw Grid slots / Guide Outlines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.lineWidth = 1;
+    for (let x = this.boardMinX; x <= this.boardMaxX; x++) {
+      for (let y = this.boardMinY; y <= this.boardMaxY; y++) {
+        const rx = x * pitchX - cw / 2;
+        const ry = y * pitchY - ch / 2;
+        ctx.strokeRect(rx, ry, cw, ch);
+      }
+    }
+
+    // 2. Draw Cards on Board
+    const state = this.getCurrentState();
+    if (state && state.grid) {
+      state.grid.forEach((cardData) => {
+        const rx = cardData.x * pitchX - cw / 2;
+        const ry = cardData.y * pitchY - ch / 2;
+
+        const cacheKey = this.getCardTextureKey(cardData);
+        let cardCanvas = this.cardCanvasCache.get(cacheKey);
+        if (!cardCanvas) {
+          cardCanvas = renderCardCanvas(cardData, 160, 224);
+          this.cardCanvasCache.set(cacheKey, cardCanvas);
+        }
+
+        ctx.save();
+        if (cardData.rotation === 180) {
+          ctx.translate(cardData.x * pitchX, cardData.y * pitchY);
+          ctx.rotate(Math.PI);
+          ctx.drawImage(cardCanvas, -cw / 2, -ch / 2, cw, ch);
+        } else {
+          ctx.drawImage(cardCanvas, rx, ry, cw, ch);
+        }
+        ctx.restore();
+      });
+    }
+
+    // 3. Draw Hover Placement Highlight
+    if (this.hoverGridPos && this.selectedCardIndex >= 0 && state && state.myHand) {
+      const card = state.myHand[this.selectedCardIndex];
+      if (card) {
+        let isValid = true;
+        if (card.type === CARD_TYPES.PATH) {
+          const tempCard = { ...card };
+          if (this.cardRotation === 180) {
+            tempCard.edges = [card.edges[2], card.edges[3], card.edges[0], card.edges[1]];
+          }
+          const val = this.localState ? this.localState.isValidPathPlacement(tempCard, this.hoverGridPos.x, this.hoverGridPos.y) : { valid: true };
+          isValid = val.valid;
+        }
+
+        const rx = this.hoverGridPos.x * pitchX - cw / 2;
+        const ry = this.hoverGridPos.y * pitchY - ch / 2;
+
+        ctx.fillStyle = isValid ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)';
+        ctx.strokeStyle = isValid ? '#10b981' : '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.fillRect(rx, ry, cw, ch);
+        ctx.strokeRect(rx, ry, cw, ch);
+      }
+    }
+
+    ctx.restore();
+
+    this.animFrame2D = requestAnimationFrame(this.render2DLoop);
   }
 
   // Start Offline / Solo Game vs AI
@@ -201,6 +439,10 @@ export class SaboteurGame extends BaseGame {
 
   // Update 3D card meshes based on game state
   update3DBoardFromState(state) {
+    if (this.is2DMode) {
+      // 2D loop handles re-rendering automatically
+      return;
+    }
     if (!state || !state.grid) return;
 
     const currentKeys = new Set();
@@ -224,7 +466,6 @@ export class SaboteurGame extends BaseGame {
       }
     });
 
-    // Remove cards destroyed by rockfall
     for (const [key, meshGroup] of this.cardMeshes.entries()) {
       if (!currentKeys.has(key)) {
         this.scene.remove(meshGroup);
@@ -246,14 +487,10 @@ export class SaboteurGame extends BaseGame {
     const wz = cardData.y * this.cellHeight;
     group.position.set(wx, 0.08, wz);
 
-    // Stone Slab Geometry
     const slabGeo = new THREE.BoxGeometry(this.cellWidth * 0.94, 0.14, this.cellHeight * 0.94);
-
-    // Stone Edge Materials
     const sideMat = new THREE.MeshStandardMaterial({ color: 0x3d322c, roughness: 0.9 });
     const bottomMat = new THREE.MeshStandardMaterial({ color: 0x241d1a, roughness: 0.9 });
 
-    // Top Face: Render procedural canvas texture
     const canvas = renderCardCanvas(cardData, 300, 420);
     const texture = new THREE.CanvasTexture(canvas);
     texture.minFilter = THREE.LinearFilter;
@@ -263,22 +500,19 @@ export class SaboteurGame extends BaseGame {
       metalness: 0.1
     });
 
-    // Materials array for Box: [right, left, top, bottom, front, back]
     const materials = [sideMat, sideMat, topMat, bottomMat, sideMat, sideMat];
     const mesh = new THREE.Mesh(slabGeo, materials);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     group.add(mesh);
 
-    // Sub-data
     group.userData = { cardData, x: cardData.x, y: cardData.y };
     return group;
   }
 
-  // Pointer & Camera Interaction
+  // Pointer & Camera Interaction (3D)
   onPointerDown(e) {
-    if (e.target !== this.renderer.domElement) return;
-
+    if (e.target !== this.renderer?.domElement) return;
     this.isDraggingBoard = true;
     this.dragStart.set(e.clientX, e.clientY);
   }
@@ -297,7 +531,7 @@ export class SaboteurGame extends BaseGame {
       return;
     }
 
-    // Raycast on board plane
+    if (!this.renderer) return;
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -312,23 +546,24 @@ export class SaboteurGame extends BaseGame {
 
       if (gx >= this.boardMinX && gx <= this.boardMaxX && gy >= this.boardMinY && gy <= this.boardMaxY) {
         this.hoverGridPos = { x: gx, y: gy };
-        this.hoverMesh.position.set(gx * this.cellWidth, 0.1, gy * this.cellHeight);
-        this.hoverMesh.visible = true;
+        if (this.hoverMesh) {
+          this.hoverMesh.position.set(gx * this.cellWidth, 0.1, gy * this.cellHeight);
+          this.hoverMesh.visible = true;
 
-        // Check placement validity for highlight color
-        const state = this.getCurrentState();
-        if (state && this.selectedCardIndex >= 0 && state.myHand) {
-          const card = state.myHand[this.selectedCardIndex];
-          if (card && card.type === CARD_TYPES.PATH) {
-            const tempCard = { ...card };
-            if (this.cardRotation === 180) {
-              tempCard.edges = [card.edges[2], card.edges[3], card.edges[0], card.edges[1]];
+          const state = this.getCurrentState();
+          if (state && this.selectedCardIndex >= 0 && state.myHand) {
+            const card = state.myHand[this.selectedCardIndex];
+            if (card && card.type === CARD_TYPES.PATH) {
+              const tempCard = { ...card };
+              if (this.cardRotation === 180) {
+                tempCard.edges = [card.edges[2], card.edges[3], card.edges[0], card.edges[1]];
+              }
+
+              const val = this.localState ? this.localState.isValidPathPlacement(tempCard, gx, gy) : { valid: true };
+              this.hoverMesh.material.color.setHex(val.valid ? 0x10b981 : 0xef4444);
+            } else {
+              this.hoverMesh.material.color.setHex(0x3b82f6);
             }
-
-            const val = this.localState ? this.localState.isValidPathPlacement(tempCard, gx, gy) : { valid: true };
-            this.hoverMesh.material.color.setHex(val.valid ? 0x10b981 : 0xef4444);
-          } else {
-            this.hoverMesh.material.color.setHex(0x3b82f6);
           }
         }
         return;
@@ -336,7 +571,7 @@ export class SaboteurGame extends BaseGame {
     }
 
     this.hoverGridPos = null;
-    this.hoverMesh.visible = false;
+    if (this.hoverMesh) this.hoverMesh.visible = false;
   }
 
   onPointerUp(e) {
@@ -366,7 +601,6 @@ export class SaboteurGame extends BaseGame {
     const card = state.myHand[this.selectedCardIndex];
     if (!card) return;
 
-    // 1. Path Card Placement
     if (card.type === CARD_TYPES.PATH) {
       if (this.gameMode === 'solo') {
         const res = this.localState.playPathCard(0, card.uid, x, y, this.cardRotation);
@@ -381,10 +615,7 @@ export class SaboteurGame extends BaseGame {
         this.sendWsMessage('play_path', { cardUid: card.uid, x, y, rotation: this.cardRotation });
         this.selectedCardIndex = -1;
       }
-    }
-
-    // 2. Rockfall Action on Grid Card
-    else if (card.type === CARD_TYPES.ACTION && card.actionType === 'rockfall') {
+    } else if (card.type === CARD_TYPES.ACTION && card.actionType === 'rockfall') {
       if (this.gameMode === 'solo') {
         const res = this.localState.playActionCard(0, card.uid, { x, y });
         if (res.success) {
@@ -398,10 +629,7 @@ export class SaboteurGame extends BaseGame {
         this.sendWsMessage('play_action', { cardUid: card.uid, targetInfo: { x, y } });
         this.selectedCardIndex = -1;
       }
-    }
-
-    // 3. Map Inspection on Goal Card
-    else if (card.type === CARD_TYPES.ACTION && card.actionType === 'map') {
+    } else if (card.type === CARD_TYPES.ACTION && card.actionType === 'map') {
       const goalIdx = (this.localState ? this.localState.goalCards : []).findIndex((g) => g.x === x && g.y === y);
       if (goalIdx !== -1) {
         if (this.gameMode === 'solo') {
@@ -423,7 +651,6 @@ export class SaboteurGame extends BaseGame {
     }
   }
 
-  // After human player completes an action in solo mode, run AI turns if needed
   onActionCompleted() {
     this.update3DBoardFromState(this.localState.getPublicStateForPlayer(0));
     this.renderUI();
@@ -438,7 +665,6 @@ export class SaboteurGame extends BaseGame {
       return;
     }
 
-    // Trigger AI Bots
     this.runAIBotsLoop();
   }
 
@@ -659,10 +885,8 @@ export class SaboteurGame extends BaseGame {
         }
       </style>
 
-      <!-- Toast -->
       <div id="sabo-toast" class="sabo-toast">Pesan notifikasi</div>
 
-      <!-- Top HUD Bar -->
       <div class="sabo-top-bar">
         <div style="display:flex; gap:0.6rem;">
           <div class="sabo-pill">
@@ -689,13 +913,9 @@ export class SaboteurGame extends BaseGame {
         </div>
       </div>
 
-      <!-- Left Sidebar: Players List -->
       <div class="sabo-sidebar" id="sabo-players-list"></div>
-
-      <!-- Right Log Drawer -->
       <div class="sabo-log-drawer" id="sabo-log-list"></div>
 
-      <!-- Bottom Hand Tray -->
       <div class="sabo-bottom-tray">
         <div class="sabo-action-panel sabo-interactive">
           <button id="sabo-btn-rotate" class="sabo-btn sabo-btn-secondary" title="Putar Kartu 180 Derajat">
@@ -712,7 +932,7 @@ export class SaboteurGame extends BaseGame {
         <div class="sabo-hand-cards sabo-interactive" id="sabo-hand-tray"></div>
       </div>
 
-      <!-- Multiplayer Lobby Modal (Hidden by default) -->
+      <!-- Multiplayer Lobby Modal -->
       <div id="sabo-multiplayer-modal" class="sabo-modal sabo-interactive" style="display:none;">
         <div class="sabo-modal-content">
           <h2 style="color:#fbbf24; margin-bottom:0.5rem; font-size:1.5rem;">⛏️ SABOTEUR MULTIPLAYER</h2>
@@ -736,7 +956,6 @@ export class SaboteurGame extends BaseGame {
             </div>
           </div>
 
-          <!-- Active Room View inside Modal -->
           <div id="sabo-room-active-view" style="display:none; border-top:1px solid #3d322c; padding-top:1rem; margin-top:1rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div>
@@ -804,7 +1023,6 @@ export class SaboteurGame extends BaseGame {
       }
     });
 
-    // Multiplayer Modal
     const btnModeToggle = document.getElementById('sabo-btn-mode-toggle');
     const modal = document.getElementById('sabo-multiplayer-modal');
     btnModeToggle?.addEventListener('click', () => {
@@ -932,12 +1150,10 @@ export class SaboteurGame extends BaseGame {
     `).join('');
   }
 
-  // Render Full DOM UI
   renderUI() {
     const state = this.getCurrentState();
     if (!state) return;
 
-    // 1. Top bar stats
     const roundText = document.getElementById('sabo-round-text');
     if (roundText) roundText.textContent = `${state.round} / ${state.maxRounds}`;
 
@@ -947,7 +1163,6 @@ export class SaboteurGame extends BaseGame {
     const modeText = document.getElementById('sabo-mode-text');
     if (modeText) modeText.textContent = this.gameMode === 'solo' ? 'Solo vs AI (Offline)' : `Room ${this.roomCode}`;
 
-    // 2. Players list sidebar
     const playersList = document.getElementById('sabo-players-list');
     if (playersList && state.players) {
       playersList.innerHTML = state.players.map((p, idx) => {
@@ -972,7 +1187,6 @@ export class SaboteurGame extends BaseGame {
       }).join('');
     }
 
-    // 3. Log list
     const logList = document.getElementById('sabo-log-list');
     if (logList && state.logs) {
       logList.innerHTML = state.logs.map((log) => `
@@ -982,7 +1196,6 @@ export class SaboteurGame extends BaseGame {
       `).join('');
     }
 
-    // 4. Hand Tray
     this.renderHandTray();
   }
 
@@ -997,7 +1210,6 @@ export class SaboteurGame extends BaseGame {
       const thumb = document.createElement('div');
       thumb.className = `sabo-card-thumb ${idx === this.selectedCardIndex ? 'selected' : ''}`;
 
-      // Preview canvas inside card thumbnail
       const canvas = renderCardCanvas(card, 160, 220);
       canvas.style.width = '100%';
       canvas.style.height = '100%';
@@ -1029,9 +1241,9 @@ export class SaboteurGame extends BaseGame {
   }
 
   update(delta) {
+    if (this.is2DMode) return;
     super.update(delta);
 
-    // Cavern torches flickering animation
     const time = this.clock.getElapsedTime();
     this.torchLights.forEach((t) => {
       t.light.intensity = t.baseIntensity + Math.sin(time * 8 + t.phase) * 0.45;
@@ -1039,6 +1251,22 @@ export class SaboteurGame extends BaseGame {
   }
 
   destroy() {
+    if (this.is2DMode) {
+      if (this.animFrame2D) {
+        cancelAnimationFrame(this.animFrame2D);
+        this.animFrame2D = null;
+      }
+      if (this.canvas2d) {
+        this.canvas2d.removeEventListener('pointerdown', this.on2DPointerDown);
+        this.canvas2d.removeEventListener('pointermove', this.on2DPointerMove);
+        this.canvas2d.removeEventListener('pointerup', this.on2DPointerUp);
+        this.canvas2d.removeEventListener('wheel', this.on2DWheel);
+        this.canvas2d.remove();
+        this.canvas2d = null;
+      }
+      window.removeEventListener('resize', this.handle2DResize);
+    }
+
     if (this.uiOverlay) {
       this.uiOverlay.remove();
       this.uiOverlay = null;

@@ -15,6 +15,7 @@ export class BaseGame {
     this.isPaused = false;
     this.isGameOver = false;
     this.isInitialized = false;
+    this.supports2DFallback = false;
 
     // Callbacks
     this.onScoreUpdate = options.onScoreUpdate || (() => {});
@@ -36,15 +37,35 @@ export class BaseGame {
         antialias: false,
         alpha: true,
         powerPreference: 'default',
-        precision: 'mediump'
+        precision: 'mediump',
+        failIfMajorPerformanceCaveat: false
       });
     } catch (err) {
-      console.warn('WebGLRenderer creation failed in browser:', err);
-      this.showWebGLErrorNotice(container);
-      return false;
+      console.warn('Primary WebGLRenderer creation failed in browser, attempting fallback:', err);
+      try {
+        const testCanvas = document.createElement('canvas');
+        const gl = testCanvas.getContext('webgl2', { failIfMajorPerformanceCaveat: false }) ||
+                   testCanvas.getContext('webgl', { failIfMajorPerformanceCaveat: false }) ||
+                   testCanvas.getContext('experimental-webgl', { failIfMajorPerformanceCaveat: false });
+        if (gl) {
+          this.renderer = new THREE.WebGLRenderer({
+            canvas: testCanvas,
+            context: gl,
+            antialias: false,
+            alpha: true,
+            failIfMajorPerformanceCaveat: false
+          });
+        }
+      } catch (fallbackErr) {
+        console.warn('Fallback WebGL context creation also failed:', fallbackErr);
+      }
     }
 
     if (!this.renderer) {
+      if (this.supports2DFallback) {
+        console.log('WebGL context unavailable; delegating to 2D Fallback Mode.');
+        return false;
+      }
       this.showWebGLErrorNotice(container);
       return false;
     }
